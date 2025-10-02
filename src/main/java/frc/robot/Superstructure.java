@@ -27,11 +27,9 @@ import frc.robot.subsystems.led.LEDIO;
 import frc.robot.subsystems.led.LEDIOCandle;
 import frc.robot.subsystems.outtake.Outtake;
 import frc.robot.subsystems.outtake.OuttakeConstants;
-import frc.robot.util.AutoAlignConstants;
 import frc.robot.util.FieldConstants;
 import frc.robot.util.FieldConstants.ReefConstants;
 import frc.robot.util.FieldConstants.ReefConstants.CoralTarget;
-import frc.robot.util.FieldConstants.SourceConstants;
 import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -177,7 +175,7 @@ public class Superstructure {
             Commands.parallel(
                 this.setState(State.ALGAE_INTAKE),
                 Commands.sequence(
-                    elevator.setTarget(() -> (FieldConstants.ReefConstants.algaeTarget.L2.height)),
+                    elevator.setTarget(() -> (FieldConstants.ReefConstants.AlgaeTarget.L2.height)),
                     elevator.setExtension())));
 
     layout
@@ -188,7 +186,7 @@ public class Superstructure {
             Commands.parallel(
                 this.setState(State.ALGAE_INTAKE),
                 Commands.sequence(
-                    elevator.setTarget(() -> (FieldConstants.ReefConstants.algaeTarget.L3.height)),
+                    elevator.setTarget(() -> (FieldConstants.ReefConstants.AlgaeTarget.L3.height)),
                     elevator.setExtension())));
 
     stateMap.get(State.ALGAE_INTAKE).whileTrue(gripper.setVoltage(() -> (GripperConstants.intake)));
@@ -217,13 +215,13 @@ public class Superstructure {
             Commands.sequence(
                 elevator.setTarget(() -> (FieldConstants.BargeConstants.elevatorSetpoint)),
                 elevator.setExtension(),
-                Commands.waitUntil(()-> elevator.atSetpoint()),
+                Commands.waitUntil(() -> elevator.atSetpoint()),
                 gripper.setVoltage(() -> GripperConstants.net)));
 
     stateMap
-    .get(State.ALGAE_PRESCORE)
-    .and(()-> !gripper.getDetected())
-    .onTrue(this.setState(State.IDLE));
+        .get(State.ALGAE_PRESCORE)
+        .and(() -> !gripper.getDetected())
+        .onTrue(this.setState(State.IDLE));
   }
 
   // A set of bindings for the Outtake, and Hopper subsystems and coral states
@@ -320,12 +318,12 @@ public class Superstructure {
 
     stateMap
         .get(State.CORAL_READY)
-        .and(() -> AutoAlignConstants.inReefRange(drive, 2.67))
+        .and(() -> ReefConstants.nearReef(drive::getPose))
         .onTrue(this.setState(State.CORAL_PRESCORE));
 
     stateMap
         .get(State.CORAL_PRESCORE)
-        .and(() -> !AutoAlignConstants.inReefRange(drive, 2.67))
+        .and(() -> !ReefConstants.nearReef(drive::getPose))
         .onTrue(this.setState(State.CORAL_READY));
 
     layout
@@ -388,18 +386,6 @@ public class Superstructure {
         .get(State.CORAL_PRESCORE)
         .and(() -> !outtake.getDetected())
         .onTrue(this.setState(State.IDLE));
-
-    // Sim States
-    stateMap
-        .get(State.CORAL_INTAKE)
-        .and(
-            () ->
-                (FieldConstants.inTolerance(
-                    SourceConstants.getNearestSource(drive::getPose),
-                    drive.getPose(),
-                    0.5,
-                    Math.PI / 4.0)))
-        .onTrue(outtake.setDetected(true));
   }
 
   // A set of bindings for the Climb subsystem and climb states (CLIMB_READY,
@@ -470,7 +456,7 @@ public class Superstructure {
         .and(() -> !(outtake.getDetected()))
         .onTrue(
             elevator
-                .setTarget(() -> (FieldConstants.ReefConstants.algaeTarget.L2.height))
+                .setTarget(() -> (FieldConstants.ReefConstants.AlgaeTarget.L2.height))
                 .andThen(elevator.setExtension()));
 
     // Algae L3 Setpoint
@@ -481,7 +467,7 @@ public class Superstructure {
         .and(() -> !(outtake.getDetected()))
         .onTrue(
             elevator
-                .setTarget(() -> (FieldConstants.ReefConstants.algaeTarget.L3.height))
+                .setTarget(() -> (FieldConstants.ReefConstants.AlgaeTarget.L3.height))
                 .andThen(elevator.setExtension()));
 
     stateMap
@@ -631,7 +617,6 @@ public class Superstructure {
 
     elevatorDisplay.setLength(elevator.getSetpoint());
     Logger.recordOutput("Superstructure/Mechanism", mech);
-    AutoAlignConstants.inReefRange(drive, 2.67);
   }
 
   public static Command rumbleCommand(
