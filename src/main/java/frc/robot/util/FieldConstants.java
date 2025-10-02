@@ -39,7 +39,7 @@ public class FieldConstants {
   public static final double widthBetweenPegs =
       0.328619; // Width Between Peg in meters ALWAYS go and check the field
   // BEFORE COMPETITION
-  public static final double safeDistance = Units.inchesToMeters(17);
+  public static final double safeDistance = Units.inchesToMeters(20);
 
   public static class ReefConstants {
     public enum CoralTarget {
@@ -230,12 +230,15 @@ public class FieldConstants {
   private static Pose2d endPose = new Pose2d(fieldLength, fieldWidth, Rotation2d.kZero);
 
   public static boolean inTolerance(
-      Pose2d pose1, Pose2d pose2, double translationTolerance, double orientationTolerance) {
-    return MathUtil.isNear(pose1.getX(), pose2.getX(), translationTolerance)
-        && MathUtil.isNear(pose1.getY(), pose2.getY(), translationTolerance)
+      Supplier<Pose2d> pose1,
+      Supplier<Pose2d> pose2,
+      double translationTolerance,
+      double orientationTolerance) {
+    return MathUtil.isNear(pose1.get().getX(), pose2.get().getX(), translationTolerance)
+        && MathUtil.isNear(pose1.get().getY(), pose2.get().getY(), translationTolerance)
         && MathUtil.isNear(
-            pose1.getRotation().getRadians(),
-            pose2.getRotation().getRadians(),
+            pose1.get().getRotation().getRadians(),
+            pose2.get().getRotation().getRadians(),
             orientationTolerance);
   }
 
@@ -253,6 +256,8 @@ public class FieldConstants {
     Logger.recordOutput("Field Constants/Source/Source Poses", SourceConstants.sourcePoses);
     Logger.recordOutput("Field Constants/Barge/Barge Tags", BargeConstants.bargeTags);
     Logger.recordOutput("Field Constants/Barge/Barge Poses", BargeConstants.bargePoses);
+    Logger.recordOutput(
+        "Field Constants/Reef/Middle", AllianceFlipUtil.apply(ReefConstants.middleReef));
     Logger.recordOutput("Field Constants/Barge/Cage Poses", BargeConstants.climbPoses);
     Logger.recordOutput("Field Constants/Current Match Time", Timer.getMatchTime());
     Logger.recordOutput(
