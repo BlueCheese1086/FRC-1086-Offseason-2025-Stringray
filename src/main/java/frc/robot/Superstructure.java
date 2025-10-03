@@ -398,15 +398,14 @@ public class Superstructure {
   // CLIMB_PULL)
   private void setClimbBindings() {
     layout.climbRequest.onTrue(
-        Commands.parallel(
-            climb.setAngle(ClimbConstants.Setpoints.extended), setState(State.CLIMB_READY)));
+        Commands.parallel(climb.setPosition(ClimbConstants.ready), setState(State.CLIMB_READY)));
 
     layout
         .scoreRequest
         .and(stateMap.get(State.CLIMB_READY))
         .onTrue(
             Commands.parallel(
-                climb.setAngle(ClimbConstants.Setpoints.score), setState(State.CLIMB_PULL)));
+                climb.setPosition(ClimbConstants.climbed), setState(State.CLIMB_PULL)));
   }
 
   // Manual Elevator Bindings only runs Outtake, Gripper, Hopper, and Elevator.
@@ -559,9 +558,7 @@ public class Superstructure {
                 outtake.setVoltage(() -> 0.0),
                 hopper.setVoltage(0),
                 gripper.setVoltage(() -> 0.0),
-                elevator
-                    .setTarget(() -> 0.0)
-                    .andThen(elevator.setExtension().andThen(elevator.homeElevator())),
+                elevator.setTarget(() -> 0.0).andThen(elevator.setExtension()),
                 this.setState(State.IDLE)));
 
     // Cancel Request but robot does have an algae.

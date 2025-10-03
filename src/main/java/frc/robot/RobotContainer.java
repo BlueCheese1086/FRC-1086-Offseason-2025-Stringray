@@ -265,10 +265,14 @@ public class RobotContainer {
         AutoRoutines.followTrajectory(
             AutoRoutines.loadTrajectory("aCtoG").get(), drive::getPose, drive::runVelocity, drive));
 
-    autoChooser.addDefaultOption("One", routine.oneL4Coral(drive, outtake, hopper, elevator));
+    autoChooser.addOption("One", routine.oneL4Coral(drive, outtake, hopper, elevator));
+
+    autoChooser.addDefaultOption("Sys ele", elevator.sysId());
 
     autoChooser.addOption(
         "Double L4", Autos.DoubleL4(drive, elevator, outtake, hopper, superstructure));
+
+    AutoAlignConstants.getAprilTagPoses();
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -304,7 +308,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return routine.oneL4Coral(drive, outtake, hopper, elevator);
+    return autoChooser.get();
     // return Autos.DoubleL4(drive, elevator, outtake, hopper, superstructure);
     // return Autos.testMultiPath();
     // return TrajectoryFollower.followTrajectory(TrajectoryFollower.loadTrajectory("Test"));
