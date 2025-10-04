@@ -241,6 +241,7 @@ public class RobotContainer {
     simLayout.operatorGripperRun = operator.rightBumper();
     simLayout.operatorOuttakeForwards = operator.rightTrigger();
     simLayout.operatorOuttakeBackwards = operator.leftTrigger();
+    simLayout.operatorConfirmManual = operator.a();
 
     // Maybe Useless Stuff?
     simLayout.setPrescoreCoral = driver.leftStick();

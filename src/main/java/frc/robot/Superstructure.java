@@ -66,6 +66,7 @@ public class Superstructure {
     public Trigger operatorOuttakeBackwards;
     public Trigger operatorGripperIntake;
     public Trigger operatorGripperRun;
+    public Trigger operatorConfirmManual;
     public CommandXboxController driveController;
     public CommandXboxController operatorController;
   }
@@ -558,6 +559,7 @@ public class Superstructure {
     stateMap
         .get(State.MANUAL_ELEVATOR)
         .and(() -> (Math.abs(layout.operatorY.getAsDouble()) >= 0.125))
+        .and(layout.operatorConfirmManual)
         .whileTrue(elevator.overideElevator(layout.operatorY))
         .onFalse(elevator.setTarget(elevator::getSetpoint).andThen(elevator::setExtension));
   }
