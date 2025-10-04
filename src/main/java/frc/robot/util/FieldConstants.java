@@ -208,11 +208,7 @@ public class FieldConstants {
 
     public static boolean inNetZone(Pose2d netPose, Pose2d currentPose) {
       return MathUtil.isNear(netPose.getX(), currentPose.getX(), 0.25)
-          && MathUtil.isNear(netPose.getY(), currentPose.getY(), FieldConstants.fieldWidth / 4)
-          && MathUtil.isNear(
-              netPose.getRotation().getRadians(),
-              currentPose.getRotation().getRadians(),
-              Math.PI / 4);
+          && MathUtil.isNear(netPose.getY(), currentPose.getY(), FieldConstants.fieldWidth / 4);
     }
 
     private static List<Pose2d> bargePoseList = List.of(bargePoses);
