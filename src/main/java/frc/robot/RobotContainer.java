@@ -47,6 +47,7 @@ import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.gripper.Gripper;
+import frc.robot.subsystems.gripper.GripperConstants;
 import frc.robot.subsystems.gripper.GripperIO;
 import frc.robot.subsystems.gripper.GripperIOSim;
 import frc.robot.subsystems.gripper.GripperIOTalonFX;
@@ -55,6 +56,7 @@ import frc.robot.subsystems.hopper.HopperIO;
 import frc.robot.subsystems.hopper.HopperIOSim;
 import frc.robot.subsystems.hopper.HopperIOTalonFX;
 import frc.robot.subsystems.outtake.Outtake;
+import frc.robot.subsystems.outtake.OuttakeConstants;
 import frc.robot.subsystems.outtake.OuttakeIO;
 import frc.robot.subsystems.outtake.OuttakeIOSim;
 import frc.robot.subsystems.outtake.OuttakeIOTalonFX;
@@ -209,7 +211,7 @@ public class RobotContainer {
     // Requests
     simLayout.intakeRequest = driver.leftTrigger();
     simLayout.scoreRequest = driver.rightTrigger();
-    simLayout.manualElevator = driver.back();
+    simLayout.manualElevator = driver.back().or(operator.back());
 
     // Coral Presets
     simLayout.L1 = driver.a();
@@ -230,6 +232,15 @@ public class RobotContainer {
     simLayout.resetGyro = driver.povRight();
     simLayout.revFunnel = driver.povUp();
     simLayout.dejamCoral = driver.start();
+
+    // Operator Stuff
+    simLayout.operatorY = () -> operator.getLeftY();
+    simLayout.operatorFunnelForwards = operator.povUp();
+    simLayout.operatorFunnelBackwards = operator.povDown();
+    simLayout.operatorGripperIntake = operator.leftBumper();
+    simLayout.operatorGripperRun = operator.rightBumper();
+    simLayout.operatorOuttakeForwards = operator.rightTrigger();
+    simLayout.operatorOuttakeBackwards = operator.leftTrigger();
 
     // Maybe Useless Stuff?
     simLayout.setPrescoreCoral = driver.leftStick();
@@ -287,6 +298,36 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
+
+    simLayout
+        .operatorOuttakeBackwards
+        .whileTrue(
+            outtake.setVoltage(() -> -(OuttakeConstants.intake)));
+
+    simLayout
+        .operatorOuttakeForwards
+        .whileTrue(
+            outtake.setVoltage(() -> (OuttakeConstants.intake)));
+
+    simLayout
+        .operatorGripperIntake
+        .whileTrue(
+                gripper.setVoltage(() -> (GripperConstants.intake)));
+
+    simLayout
+        .operatorGripperRun
+        .whileTrue(
+                gripper.setVoltage(() -> (GripperConstants.net)));
+
+    simLayout
+        .operatorFunnelForwards
+        .whileTrue(
+            hopper.setVoltage(OuttakeConstants.intake));
+
+    simLayout
+        .operatorFunnelBackwards
+        .whileTrue(
+            hopper.setVoltage(-OuttakeConstants.intake));
   }
 
   public Command controllerRumble(double time, double strength) {
