@@ -52,6 +52,8 @@ public class AutoRoutines {
     return Commands.sequence(
         DriveCommands.autoAlign(
             drive, () -> ReefConstants.getBestBranch(drive::getPose, true, true)),
+        Commands.waitUntil(
+            () -> DriveCommands.isNear(ReefConstants.getBestBranch(drive::getPose, true, true), drive.getPose())),
         elevator.setTarget(() -> CoralTarget.L4.height),
         elevator.setExtension(),
         Commands.waitUntil(elevator::atSetpoint),
@@ -131,20 +133,18 @@ public class AutoRoutines {
       Logger.recordOutput("Autos/Sample Pose", sample.getPose());
       Logger.recordOutput(
           "Autos/Speeds Field Relative", new ChassisSpeeds(sample.vx, sample.vy, sample.omega));
-      ChassisSpeeds speeds =
-          ChassisSpeeds.fromFieldRelativeSpeeds(
-              sample.vx + xController.calculate(pose.getX(), sample.getPose().getX()),
-              sample.vy + yController.calculate(pose.getY(), sample.getPose().getY()),
-              sample.omega
-                  + rotController.calculate(
-                      pose.getRotation().getRadians(), sample.getPose().getRotation().getRadians()),
-              drive.getRotation());
+      ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+          sample.vx + xController.calculate(pose.getX(), sample.getPose().getX()),
+          sample.vy + yController.calculate(pose.getY(), sample.getPose().getY()),
+          sample.omega
+              + rotController.calculate(
+                  pose.getRotation().getRadians(), sample.getPose().getRotation().getRadians()),
+          drive.getRotation());
       drive.runVelocity(speeds);
     };
   }
 
-  public static final Map<String, Optional<Trajectory<SwerveSample>>> trajectoryMap =
-      Map.of(
-          "aCtoG", loadTrajectory("aCtoG"),
-          "aBoG", loadTrajectory("aBoG"));
+  public static final Map<String, Optional<Trajectory<SwerveSample>>> trajectoryMap = Map.of(
+      "aCtoG", loadTrajectory("aCtoG"),
+      "aBoG", loadTrajectory("aBoG"));
 }
