@@ -66,7 +66,7 @@ public class Elevator extends SubsystemBase {
   public Command overideElevator(DoubleSupplier volts) {
     return Commands.run(
         () -> {
-          io.setVolts(MathUtil.clamp((volts.getAsDouble() * 12) + ElevatorConstants.kV.getAsDouble(), -12, 12));
+          io.setVolts(MathUtil.clamp((volts.getAsDouble() * 4) + ElevatorConstants.kV.getAsDouble(), -12, 12));
         },
         this);
   }
