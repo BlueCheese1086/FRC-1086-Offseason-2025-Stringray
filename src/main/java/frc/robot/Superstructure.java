@@ -60,6 +60,12 @@ public class Superstructure {
     public Trigger autoAlignCage;
     public Trigger setPrescoreCoral;
     public Trigger setPrescoreAlgae;
+    public Trigger operatorFunnelForwards;
+    public Trigger operatorFunnelBackwards;
+    public Trigger operatorOuttakeForwards;
+    public Trigger operatorOuttakeBackwards;
+    public Trigger operatorGripperIntake;
+    public Trigger operatorGripperRun;
     public CommandXboxController driveController;
     public CommandXboxController operatorController;
   }
@@ -547,6 +553,13 @@ public class Superstructure {
             elevator
                 .setTarget(() -> (ReefConstants.CoralTarget.L4.height))
                 .andThen(elevator.setExtension()));
+
+
+    stateMap
+        .get(State.MANUAL_ELEVATOR)
+        .and(() -> (Math.abs(layout.operatorY.getAsDouble()) >= 0.125))
+        .whileTrue(elevator.overideElevator(layout.operatorY))
+        .onFalse(elevator.setTarget(elevator::getSetpoint).andThen(elevator::setExtension));
   }
 
   // A set of bindings that isn't tied to a specific State.

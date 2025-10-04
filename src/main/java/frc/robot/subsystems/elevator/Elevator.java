@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorConstants.*;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -65,7 +66,7 @@ public class Elevator extends SubsystemBase {
   public Command overideElevator(DoubleSupplier volts) {
     return Commands.run(
         () -> {
-          io.setVolts(volts.getAsDouble() * 12);
+          io.setVolts(MathUtil.clamp((volts.getAsDouble() * 4) + ElevatorConstants.kV.getAsDouble(), -12, 12));
         },
         this);
   }
