@@ -214,7 +214,11 @@ public class Superstructure {
                 elevator.setTarget(() -> (FieldConstants.BargeConstants.elevatorSetpoint)),
                 elevator.setExtension(),
                 Commands.waitUntil(() -> elevator.atSetpoint()),
-                gripper.setVoltage(() -> GripperConstants.net)));
+                gripper
+                    .setVoltage(() -> GripperConstants.net)
+                    .until(() -> !(gripper.getDetected())),
+                elevator.setTarget(() -> 0.0),
+                elevator.setExtension()));
 
     stateMap
         .get(State.ALGAE_PRESCORE)
