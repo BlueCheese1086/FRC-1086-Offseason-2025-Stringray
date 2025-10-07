@@ -136,9 +136,9 @@ public class RobotContainer {
                 FieldConstants.fieldLayout,
                 drive::getRotation,
                 new VisionIOPhotonVision(
-                    "CamLeft", cameraTransforms[1], FieldConstants.fieldLayout),
+                    "CamLeft", cameraTransforms[0], FieldConstants.fieldLayout),
                 new VisionIOPhotonVision(
-                    "CamRight", cameraTransforms[0], FieldConstants.fieldLayout));
+                    "CamRight", cameraTransforms[1], FieldConstants.fieldLayout));
         break;
 
       case SIM:
@@ -161,9 +161,9 @@ public class RobotContainer {
                 FieldConstants.fieldLayout,
                 drive::getRotation,
                 new VisionIOPhotonVisionSim(
-                    "Left Cam", cameraTransforms[1], drive::getPose, VisionConstants.fieldLayout),
+                    "Left Cam", cameraTransforms[0], drive::getPose, VisionConstants.fieldLayout),
                 new VisionIOPhotonVisionSim(
-                    "Right Cam", cameraTransforms[0], drive::getPose, VisionConstants.fieldLayout));
+                    "Right Cam", cameraTransforms[1], drive::getPose, VisionConstants.fieldLayout));
         break;
 
       default:
@@ -346,7 +346,8 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    // return autoChooser.get();
+    return AutoRoutines.runTrajectory("aCtoH");
     // return Autos.DoubleL4(drive, elevator, outtake, hopper, superstructure);
     // return Autos.testMultiPath();
     // return TrajectoryFollower.followTrajectory(TrajectoryFollower.loadTrajectory("Test"));
