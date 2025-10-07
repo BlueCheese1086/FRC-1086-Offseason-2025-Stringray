@@ -18,13 +18,28 @@ import frc.robot.subsystems.outtake.Outtake;
 import frc.robot.subsystems.outtake.OuttakeConstants;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
+import frc.robot.util.FieldConstants.ReefConstants;
 import frc.robot.util.FieldConstants.ReefConstants.CoralTarget;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /** Some Preset Autos */
 public class Autos {
-  public static Command DoubleL4(
+  public static Command SingleL4Top(
+      Drive drive,
+      Elevator elevator,
+      Outtake outtake,
+      Hopper hopper,
+      Superstructure superstructure) {
+    return Commands.sequence(
+        simInit(drive, outtake, true),
+        AutoRoutines.runTrajectory("aTtoI"),
+        scoreCoral(() -> (CoralTarget.L4), elevator, outtake),
+        AutoRoutines.runTrajectory("ItoS"),
+        intakeCoral(superstructure, outtake, hopper));
+  }
+
+  public static Command SingleL4Center(
       Drive drive,
       Elevator elevator,
       Outtake outtake,
@@ -34,7 +49,28 @@ public class Autos {
         simInit(drive, outtake, true),
         AutoRoutines.runTrajectory("aCtoG"),
         scoreCoral(() -> (CoralTarget.L4), elevator, outtake),
-        AutoRoutines.runTrajectory("GtoS"));
+        AutoRoutines.runTrajectory("GtoS"),
+        intakeCoral(superstructure, outtake, hopper));
+  }
+
+  public static Command AutoAlignL4Center(
+      Drive drive,
+      Elevator elevator,
+      Outtake outtake,
+      Hopper hopper,
+      Superstructure superstructure) {
+    return Commands.sequence(
+        simInit(drive, outtake, true),
+        DriveCommands.autoAlign(
+            drive,
+            () -> (AllianceFlipUtil.apply(new Pose2d(5.4, 5.25, Rotation2d.fromDegrees(240))))),
+        Commands.waitUntil(
+            () ->
+                DriveCommands.isNear(
+                    drive.getPose(), ReefConstants.getBestBranch(drive::getPose, true, true))),
+        scoreCoral(() -> (CoralTarget.L4), elevator, outtake),
+        AutoRoutines.runTrajectory("GtoS"),
+        intakeCoral(superstructure, outtake, hopper));
   }
 
   public static Command k4L4(
@@ -90,6 +126,7 @@ public class Autos {
         elevator.setTarget(() -> (targetSupplier.get().height)),
         elevator.setExtension(),
         Commands.waitUntil(elevator::atSetpoint),
+        Commands.waitSeconds(0.125),
         Commands.parallel(
             outtake
                 .setVoltage(() -> (OuttakeConstants.voltageMap.get(elevator.getSetpoint())))
@@ -115,7 +152,7 @@ public class Autos {
     // return logCommand(superstructure);
     return Commands.parallel(
             hopper.setVoltage(OuttakeConstants.intake),
-            outtake.setVoltage(() -> (OuttakeConstants.intake)),
+            outtake.setVoltage(() -> 8.0),
             Commands.waitSeconds(0.5)
                 .andThen(() -> outtake.setDetected(true))
                 .unless(Robot::isReal))

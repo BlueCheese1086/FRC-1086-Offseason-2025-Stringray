@@ -39,14 +39,14 @@ public class FieldConstants {
   public static final double widthBetweenPegs =
       0.328619; // Width Between Peg in meters ALWAYS go and check the field
   // BEFORE COMPETITION
-  public static final double safeDistance = Units.inchesToMeters(20);
+  public static final double safeDistance = 0.48;
 
   public static class ReefConstants {
     public enum CoralTarget {
       L1(0.58),
       L2(0.79),
       L3(1.18),
-      L4(1.73);
+      L4(1.75);
 
       public double height;
 

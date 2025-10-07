@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveCommands.IntakeLocation;
 import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.ClimbConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.gripper.Gripper;
@@ -252,7 +251,7 @@ public class Superstructure {
     stateMap
         .get(State.CORAL_INTAKE)
         .and(outtake::getDetected)
-        .onTrue(this.setState(State.CORAL_READY));
+        .whileTrue(this.setState(State.CORAL_READY));
 
     // Rumble when it has coral and is in teleop.
     stateMap
@@ -404,15 +403,11 @@ public class Superstructure {
   // A set of bindings for the Climb subsystem and climb states (CLIMB_READY,
   // CLIMB_PULL)
   private void setClimbBindings() {
-    layout.climbRequest.onTrue(
-        Commands.parallel(climb.setPosition(ClimbConstants.ready), setState(State.CLIMB_READY)));
+    layout.climbRequest.onTrue(Commands.parallel(setState(State.CLIMB_READY)));
 
-    layout
-        .scoreRequest
-        .and(stateMap.get(State.CLIMB_READY))
-        .onTrue(
-            Commands.parallel(
-                climb.setPosition(ClimbConstants.climbed), setState(State.CLIMB_PULL)));
+    layout.climbRequest.and(stateMap.get(State.CLIMB_READY)).whileTrue(climb.setVoltage(6));
+
+    layout.scoreRequest.and(stateMap.get(State.CLIMB_READY)).whileTrue(climb.setVoltage(9));
   }
 
   // Manual Elevator Bindings only runs Outtake, Gripper, Hopper, and Elevator.
@@ -424,22 +419,22 @@ public class Superstructure {
         .whileTrue(this.setState(State.MANUAL_ELEVATOR))
         .onFalse(this.setState(State.IDLE));
     // Manual Coral Intake if near source
-    layout
-        .intakeRequest
-        .and(stateMap.get(State.MANUAL_ELEVATOR))
-        .and(() -> !(outtake.getDetected()))
-        .and(() -> (DriveCommands.getBestIntake(drive) == IntakeLocation.SOURCE))
-        .whileTrue(
-            Commands.parallel(
-                hopper.setVoltage(OuttakeConstants.intake),
-                outtake.setVoltage(() -> (OuttakeConstants.intake))));
+    // layout
+    //     .intakeRequest
+    //     .and(stateMap.get(State.MANUAL_ELEVATOR))
+    //     .and(() -> !(outtake.getDetected()))
+    //     .and(() -> (DriveCommands.getBestIntake(drive) == IntakeLocation.SOURCE))
+    //     .whileTrue(
+    //         Commands.parallel(
+    //             hopper.setVoltage(OuttakeConstants.intake),
+    //             outtake.setVoltage(() -> (OuttakeConstants.intake))));
 
     // Manual Algae Intake if near Reef
     layout
         .intakeRequest
         .and(stateMap.get(State.MANUAL_ELEVATOR))
         .and(() -> !(gripper.getDetected()))
-        .and(() -> (DriveCommands.getBestIntake(drive) == IntakeLocation.REEF))
+        // .and(() -> (DriveCommands.getBestIntake(drive) == IntakeLocation.REEF))
         .whileTrue(gripper.setVoltage(() -> (GripperConstants.intake)));
 
     // Manual Coral Score if it has coral
@@ -447,7 +442,7 @@ public class Superstructure {
         .scoreRequest
         .and(stateMap.get(State.MANUAL_ELEVATOR))
         .and(outtake::getDetected)
-        .whileTrue(outtake.setVoltage(() -> (5.0)));
+        .whileTrue(outtake.setVoltage(() -> (6.0)));
 
     // Manual Algae Score if it has algae
     layout
@@ -462,7 +457,14 @@ public class Superstructure {
         .L1
         .and(stateMap.get(State.MANUAL_ELEVATOR))
         .and(() -> !(outtake.getDetected()))
-        .onTrue(elevator.setTarget(() -> (0.0)).andThen(elevator.setExtension()));
+        .onTrue(
+            elevator
+                .setTarget(() -> (0.0))
+                .andThen(
+                    elevator
+                        .setExtension()
+                        .until(elevator::atSetpoint)
+                        .andThen(elevator.homeElevator())));
 
     // Algae L2 Setpoint
     layout
@@ -554,7 +556,6 @@ public class Superstructure {
             elevator
                 .setTarget(() -> (ReefConstants.CoralTarget.L4.height))
                 .andThen(elevator.setExtension()));
-
 
     stateMap
         .get(State.MANUAL_ELEVATOR)

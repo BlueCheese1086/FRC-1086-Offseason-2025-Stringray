@@ -29,19 +29,26 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
+  private final Supplier<Rotation2d> rotationSupplier;
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private final AprilTagFieldLayout aprilTagLayout;
 
-  public Vision(VisionConsumer consumer, AprilTagFieldLayout layout, VisionIO... io) {
+  public Vision(
+      VisionConsumer consumer,
+      AprilTagFieldLayout layout,
+      Supplier<Rotation2d> supplier,
+      VisionIO... io) {
     this.consumer = consumer;
     this.io = io;
     this.aprilTagLayout = layout;
+    rotationSupplier = supplier;
 
     // Initialize inputs
     this.inputs = new VisionIOInputsAutoLogged[io.length];

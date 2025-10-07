@@ -49,5 +49,6 @@ public class Gripper extends SubsystemBase {
     io.getData(data);
     proximityIO.getData(proximityData);
     Logger.processInputs("Gripper", data);
+    Logger.processInputs("ProximityGripper", proximityData);
   }
 }

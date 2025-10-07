@@ -67,9 +67,9 @@ public class ElevatorConstants {
     }
   }
 
-  public static LoggedTunableNumber kP = new LoggedTunableNumber("Elevator/PID/kP", 38.553);
-  public static LoggedTunableNumber kI = new LoggedTunableNumber("Elevator/PID/kI", 0.0);
-  public static LoggedTunableNumber kD = new LoggedTunableNumber("Elevator/PID/kD", 4.5201);
+  public static LoggedTunableNumber kP = new LoggedTunableNumber("Elevator/PID/kP", 60.0);
+  public static LoggedTunableNumber kI = new LoggedTunableNumber("Elevator/PID/kI", 1.75);
+  public static LoggedTunableNumber kD = new LoggedTunableNumber("Elevator/PID/kD", 3.7691);
 
   public static LoggedTunableNumber kS = new LoggedTunableNumber("Elevator/FF/kS", 0.36101);
   public static LoggedTunableNumber kG = new LoggedTunableNumber("Elevator/FF/kG", 0.63923);
@@ -78,14 +78,14 @@ public class ElevatorConstants {
 
   // Real Robot numbers
   public static double rampRate = 0.1;
-  public static double maxVelocity = 1.0;
+  public static double maxVelocity = 1.25;
   public static double maxAcceleration = 10.0;
-  public static int statorCurrent = 100;
+  public static int statorCurrent = 120;
   public static int supplyCurrent = 80;
   public static int supplyCurrentLow = 60;
 
   public static final double drumRadius = 5.0 / 1000.0 * 36 / (2.0 * Math.PI);
   public static final double gearing = (5.0 / 1.0);
   public static final double positionConversionFactor = drumRadius * 2 * Math.PI / gearing;
-  public static final double tolerance = 0.15;
+  public static final double tolerance = 0.05;
 }

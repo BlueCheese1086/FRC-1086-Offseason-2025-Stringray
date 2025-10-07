@@ -19,13 +19,13 @@ import edu.wpi.first.apriltag.AprilTagFields;
 /** Add your docs here. */
 public class VisionConstants {
   // Basic filtering thresholds
-  public static double maxAmbiguity = 0.25; // 0.3
-  public static double maxZError = 0.75; // 0.75
+  public static double maxAmbiguity = 0.18; // 0.3d
+  public static double maxZError = 0.6; // 0.75
 
   // Standard deviation baselines, for 1 meter distance and 1 tag
   // (Adjusted automatically based on distance and # of tags)
-  public static double linearStdDevBaseline = 0.02; // Meters
-  public static double angularStdDevBaseline = 0.06; // Radians
+  public static double linearStdDevBaseline = 0.35; // Meters
+  public static double angularStdDevBaseline = 0.14; // Radians
 
   // Standard deviation multipliers for each camera
   // (Adjust to trust some cameras more than others)

@@ -61,6 +61,17 @@ public class Climb extends SubsystemBase {
     return Commands.runOnce(() -> io.setBrakeMode(brakeModeEnabled));
   }
 
+  public Command setVoltage(double volts) {
+    return this.run(
+            () -> {
+              io.setVoltage(volts);
+            })
+        .finallyDo(
+            () -> {
+              io.setVoltage(0.0);
+            });
+  }
+
   public void setCoastOverride(BooleanSupplier coastOverride) {
     this.coastOverride = coastOverride;
   }

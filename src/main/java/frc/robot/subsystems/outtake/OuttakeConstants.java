@@ -13,7 +13,7 @@ public class OuttakeConstants {
   public static final double L1 = 5.0;
   public static final double L2 = 5.0;
   public static final double L3 = 5.0;
-  public static final double L4 = 5.0;
+  public static final double L4 = 6.0;
 
   public static final Map<Double, Double> voltageMap =
       Map.of(

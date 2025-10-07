@@ -66,7 +66,9 @@ public class Elevator extends SubsystemBase {
   public Command overideElevator(DoubleSupplier volts) {
     return Commands.run(
         () -> {
-          io.setVolts(MathUtil.clamp((volts.getAsDouble() * 4) + ElevatorConstants.kV.getAsDouble(), -12, 12));
+          io.setVolts(
+              MathUtil.clamp(
+                  (volts.getAsDouble() * 2) + ElevatorConstants.kV.getAsDouble(), -12, 12));
         },
         this);
   }
@@ -158,7 +160,7 @@ public class Elevator extends SubsystemBase {
     Logger.processInputs("Elevator", inputs);
     io.updateInputs(inputs);
     Logger.recordOutput("Elevator/TargetHeight", inputs.targetHeight);
-    inputs.atSetpoint = Math.abs(inputs.targetHeight - inputs.position) <= tolerance;
+    inputs.atSetpoint = MathUtil.isNear(inputs.targetHeight, inputs.position, tolerance);
     this.setPosition(getSetpoint());
   }
 }

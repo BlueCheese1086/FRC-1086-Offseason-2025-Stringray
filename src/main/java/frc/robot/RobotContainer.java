@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Superstructure.ControllerLayout;
 import frc.robot.commands.AutoRoutines;
 import frc.robot.commands.Autos;
@@ -135,6 +134,7 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 FieldConstants.fieldLayout,
+                drive::getRotation,
                 new VisionIOPhotonVision(
                     "CamLeft", cameraTransforms[1], FieldConstants.fieldLayout),
                 new VisionIOPhotonVision(
@@ -159,6 +159,7 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 FieldConstants.fieldLayout,
+                drive::getRotation,
                 new VisionIOPhotonVisionSim(
                     "Left Cam", cameraTransforms[1], drive::getPose, VisionConstants.fieldLayout),
                 new VisionIOPhotonVisionSim(
@@ -180,7 +181,11 @@ public class RobotContainer {
         gripper = new Gripper(new GripperIO() {}, new ProximityIO() {});
         climb = new Climb(new ClimbIO() {});
         vision =
-            new Vision(drive::addVisionMeasurement, FieldConstants.fieldLayout, new VisionIO[] {});
+            new Vision(
+                drive::addVisionMeasurement,
+                FieldConstants.fieldLayout,
+                drive::getRotation,
+                new VisionIO[] {});
         break;
     }
 
@@ -234,7 +239,7 @@ public class RobotContainer {
     simLayout.dejamCoral = driver.start();
 
     // Operator Stuff
-    simLayout.operatorY = () -> operator.getLeftY();
+    simLayout.operatorY = () -> -operator.getLeftY();
     simLayout.operatorFunnelForwards = operator.povUp();
     simLayout.operatorFunnelBackwards = operator.povDown();
     simLayout.operatorGripperIntake = operator.leftBumper();
@@ -279,10 +284,18 @@ public class RobotContainer {
 
     autoChooser.addOption("One L4 Coral", routine.oneL4Coral(drive, outtake, hopper, elevator));
 
-    autoChooser.addDefaultOption("SysId Elevator", elevator.sysId());
+    autoChooser.addOption("SysId Elevator", elevator.sysId());
+
+    autoChooser.addDefaultOption(
+        "Single L4 Coral Top",
+        Autos.AutoAlignL4Center(drive, elevator, outtake, hopper, superstructure));
 
     autoChooser.addOption(
-        "Double L4 Coral", Autos.DoubleL4(drive, elevator, outtake, hopper, superstructure));
+        "Single L4 Coral Center",
+        Autos.SingleL4Center(drive, elevator, outtake, hopper, superstructure));
+
+    autoChooser.addOption(
+        "Double Auto", Autos.k4L4(drive, elevator, outtake, hopper, superstructure));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -300,35 +313,19 @@ public class RobotContainer {
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
 
-    simLayout
-        .operatorOuttakeBackwards
-        .whileTrue(
-            outtake.setVoltage(() -> -(OuttakeConstants.intake)));
+    simLayout.operatorOuttakeBackwards.whileTrue(
+        outtake.setVoltage(() -> -(OuttakeConstants.intake)));
 
-    simLayout
-        .operatorOuttakeForwards
-        .whileTrue(
-            outtake.setVoltage(() -> (OuttakeConstants.intake)));
+    simLayout.operatorOuttakeForwards.whileTrue(
+        outtake.setVoltage(() -> (OuttakeConstants.intake)));
 
-    simLayout
-        .operatorGripperIntake
-        .whileTrue(
-                gripper.setVoltage(() -> (GripperConstants.intake)));
+    simLayout.operatorGripperIntake.whileTrue(gripper.setVoltage(() -> (GripperConstants.intake)));
 
-    simLayout
-        .operatorGripperRun
-        .whileTrue(
-                gripper.setVoltage(() -> (GripperConstants.net)));
+    simLayout.operatorGripperRun.whileTrue(gripper.setVoltage(() -> (GripperConstants.net)));
 
-    simLayout
-        .operatorFunnelForwards
-        .whileTrue(
-            hopper.setVoltage(OuttakeConstants.intake));
+    simLayout.operatorFunnelForwards.whileTrue(hopper.setVoltage(OuttakeConstants.intake));
 
-    simLayout
-        .operatorFunnelBackwards
-        .whileTrue(
-            hopper.setVoltage(-OuttakeConstants.intake));
+    simLayout.operatorFunnelBackwards.whileTrue(hopper.setVoltage(-OuttakeConstants.intake));
   }
 
   public Command controllerRumble(double time, double strength) {
