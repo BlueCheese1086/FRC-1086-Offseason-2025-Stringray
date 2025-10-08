@@ -15,17 +15,20 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.util.Units;
 
 /** Add your docs here. */
 public class VisionConstants {
   // Basic filtering thresholds
-  public static double maxAmbiguity = 0.18; // 0.3d
-  public static double maxZError = 0.6; // 0.75
+  public static double maxAmbiguity = 0.25; // 0.3d
+  public static double maxZError = 0.75; // 0.75
 
   // Standard deviation baselines, for 1 meter distance and 1 tag
   // (Adjusted automatically based on distance and # of tags)
-  public static double linearStdDevBaseline = 0.35; // Meters
-  public static double angularStdDevBaseline = 0.14; // Radians
+  public static double linearStdDevBaseline = 5.0; // Meters
+  public static double angularStdDevBaseline = 7.0; // Radians
 
   // Standard deviation multipliers for each camera
   // (Adjust to trust some cameras more than others)
@@ -43,4 +46,17 @@ public class VisionConstants {
   public static AprilTagFieldLayout fieldLayout =
       AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
   ;
+
+  public static Transform3d robotToLeftCam =
+      new Transform3d(
+          Units.inchesToMeters(12.066),
+          Units.inchesToMeters(11.906),
+          Units.inchesToMeters(8.355),
+          new Rotation3d(0.0, -Units.degreesToRadians(13.125000), Units.degreesToRadians(-30)));
+  public static Transform3d robotToRightCam =
+      new Transform3d(
+          Units.inchesToMeters(12.066),
+          Units.inchesToMeters(-11.906),
+          Units.inchesToMeters(8.355),
+          new Rotation3d(0.0, -Units.degreesToRadians(13.125000), Units.degreesToRadians(30)));
 }

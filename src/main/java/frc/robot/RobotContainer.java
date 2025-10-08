@@ -14,9 +14,6 @@
 package frc.robot;
 
 import choreo.auto.AutoFactory;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -98,21 +95,6 @@ public class RobotContainer {
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
-  // Vision Camera Transforms
-  private final Transform3d[] cameraTransforms =
-      new Transform3d[] {
-        new Transform3d(
-            Units.inchesToMeters(12.066),
-            Units.inchesToMeters(11.906),
-            Units.inchesToMeters(8.355),
-            new Rotation3d(0.0, -Units.degreesToRadians(13.125000), Units.degreesToRadians(-30))),
-        new Transform3d(
-            Units.inchesToMeters(12.066),
-            Units.inchesToMeters(-11.906),
-            Units.inchesToMeters(8.355),
-            new Rotation3d(0.0, -Units.degreesToRadians(13.125000), Units.degreesToRadians(30)))
-      };
-
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
@@ -136,9 +118,9 @@ public class RobotContainer {
                 FieldConstants.fieldLayout,
                 drive::getRotation,
                 new VisionIOPhotonVision(
-                    "CamLeft", cameraTransforms[0], FieldConstants.fieldLayout),
+                    "CamLeft", VisionConstants.robotToLeftCam, FieldConstants.fieldLayout),
                 new VisionIOPhotonVision(
-                    "CamRight", cameraTransforms[1], FieldConstants.fieldLayout));
+                    "CamRight", VisionConstants.robotToRightCam, FieldConstants.fieldLayout));
         break;
 
       case SIM:
@@ -161,9 +143,15 @@ public class RobotContainer {
                 FieldConstants.fieldLayout,
                 drive::getRotation,
                 new VisionIOPhotonVisionSim(
-                    "Left Cam", cameraTransforms[0], drive::getPose, VisionConstants.fieldLayout),
+                    "Left Cam",
+                    VisionConstants.robotToLeftCam,
+                    drive::getPose,
+                    VisionConstants.fieldLayout),
                 new VisionIOPhotonVisionSim(
-                    "Right Cam", cameraTransforms[1], drive::getPose, VisionConstants.fieldLayout));
+                    "Right Cam",
+                    VisionConstants.robotToRightCam,
+                    drive::getPose,
+                    VisionConstants.fieldLayout));
         break;
 
       default:
@@ -185,7 +173,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 FieldConstants.fieldLayout,
                 drive::getRotation,
-                new VisionIO[] {});
+                new VisionIO() {},
+                new VisionIO() {});
         break;
     }
 
