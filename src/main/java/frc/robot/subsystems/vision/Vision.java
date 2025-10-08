@@ -39,6 +39,7 @@ public class Vision extends SubsystemBase {
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private final AprilTagFieldLayout aprilTagLayout;
+  private final LinkedList<Double> recentYaw = new LinkedList<>();
 
   public Vision(
       VisionConsumer consumer,
@@ -108,6 +109,12 @@ public class Vision extends SubsystemBase {
 
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
+        double newYaw = observation.pose().getZ();
+        Logger.recordOutput("Vision/YawDegrees", observation.pose().getZ());
+
+        double averageYaw = getAverageRecentYaw();
+        Logger.recordOutput("Vision/Yaw", Math.abs(newYaw - averageYaw));
+        boolean rejectYaw = Math.abs(newYaw - averageYaw) > VisionConstants.maxYawDeviation;
         // Check whether to reject pose
         boolean rejectPose =
             observation.tagCount() == 0 // Must have at least one tag
@@ -115,7 +122,6 @@ public class Vision extends SubsystemBase {
                     && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
                 || Math.abs(observation.pose().getZ())
                     > maxZError // Must have realistic Z coordinate
-
                 // Must be within the field boundaries
                 || observation.pose().getX() < 0.0
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
@@ -124,9 +130,14 @@ public class Vision extends SubsystemBase {
 
         // Add pose to log
         robotPoses.add(observation.pose());
+
         if (rejectPose) {
           robotPosesRejected.add(observation.pose());
         } else {
+          recentYaw.addLast(newYaw);
+          if (recentYaw.size() > VisionConstants.yawHistorySize) {
+            recentYaw.removeFirst();
+          }
           robotPosesAccepted.add(observation.pose());
         }
 
@@ -137,9 +148,20 @@ public class Vision extends SubsystemBase {
         // Calculate standard deviations
         double stdDevFactor =
             Math.max(Math.pow(observation.averageTagDistance(), 1.0) / observation.tagCount(), 1.0);
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
+
+        double linearStdDev =
+            (observation.type() == PoseObservationType.PHOTONVISION
+                    ? trigLinearStdDevBaseline
+                    : multitagLinearStdDevBaseline)
+                * stdDevFactor;
+
+        double angularStdDev =
+            (observation.type() == PoseObservationType.PHOTONVISION
+                    ? trigAngularStdDevBaseline
+                    : multitagAngularStdDevBaseline)
+                * stdDevFactor;
+
+        if (observation.type() == PoseObservationType.MULTITAG) {
           linearStdDev *= linearStdDevMegatag2Factor;
           angularStdDev *= angularStdDevMegatag2Factor;
         }
@@ -193,5 +215,14 @@ public class Vision extends SubsystemBase {
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs);
+  }
+
+  private double getAverageRecentYaw() {
+    if (recentYaw.isEmpty()) return 0.0; // default if no history
+    double sum = 0.0;
+    for (double yaw : recentYaw) {
+      sum += yaw;
+    }
+    return sum / recentYaw.size();
   }
 }
