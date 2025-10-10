@@ -32,9 +32,9 @@ import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class AutoRoutines {
-  private static final PIDController xController = new PIDController(5.0, 0, 0);
-  private static final PIDController yController = new PIDController(5.0, 0, 0);
-  private static final PIDController rotController = new PIDController(7.0, 0, 0);
+  private static final PIDController xController = new PIDController(10.0, 0, 0);
+  private static final PIDController yController = new PIDController(10.0, 0, 0);
+  private static final PIDController rotController = new PIDController(7.5, 0, 0);
 
   static {
     rotController.enableContinuousInput(-Math.PI, Math.PI);
