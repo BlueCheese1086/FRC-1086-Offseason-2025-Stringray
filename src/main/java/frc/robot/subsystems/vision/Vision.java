@@ -40,6 +40,7 @@ public class Vision extends SubsystemBase {
   private final Alert[] disconnectedAlerts;
   private final AprilTagFieldLayout aprilTagLayout;
   private final LinkedList<Double> recentYaw = new LinkedList<>();
+  private int index = 0;
 
   public Vision(
       VisionConsumer consumer,
@@ -105,6 +106,11 @@ public class Vision extends SubsystemBase {
         if (tagPose.isPresent()) {
           tagPoses.add(tagPose.get());
         }
+      }
+
+      for (var loggedAlgae : inputs[cameraIndex].algaePose) {
+        Logger.recordOutput("Object Detection" + index, loggedAlgae);
+        index++;
       }
 
       // Loop over pose observations
