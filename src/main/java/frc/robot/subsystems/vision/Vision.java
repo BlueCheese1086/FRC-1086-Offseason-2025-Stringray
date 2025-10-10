@@ -109,12 +109,7 @@ public class Vision extends SubsystemBase {
 
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
-        double newYaw = observation.pose().getZ();
-        Logger.recordOutput("Vision/YawDegrees", observation.pose().getZ());
-
-        double averageYaw = getAverageRecentYaw();
-        Logger.recordOutput("Vision/Yaw", Math.abs(newYaw - averageYaw));
-        boolean rejectYaw = Math.abs(newYaw - averageYaw) > VisionConstants.maxYawDeviation;
+        
         // Check whether to reject pose
         boolean rejectPose =
             observation.tagCount() == 0 // Must have at least one tag
@@ -134,10 +129,6 @@ public class Vision extends SubsystemBase {
         if (rejectPose) {
           robotPosesRejected.add(observation.pose());
         } else {
-          recentYaw.addLast(newYaw);
-          if (recentYaw.size() > VisionConstants.yawHistorySize) {
-            recentYaw.removeFirst();
-          }
           robotPosesAccepted.add(observation.pose());
         }
 
@@ -215,14 +206,5 @@ public class Vision extends SubsystemBase {
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs);
-  }
-
-  private double getAverageRecentYaw() {
-    if (recentYaw.isEmpty()) return 0.0; // default if no history
-    double sum = 0.0;
-    for (double yaw : recentYaw) {
-      sum += yaw;
-    }
-    return sum / recentYaw.size();
   }
 }
