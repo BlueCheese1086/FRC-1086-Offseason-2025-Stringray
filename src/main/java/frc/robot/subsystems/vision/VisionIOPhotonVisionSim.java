@@ -39,7 +39,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
       Transform3d robotToCamera,
       Supplier<Pose2d> poseSupplier,
       AprilTagFieldLayout layout) {
-    super(name, robotToCamera, layout);
+    super(name, robotToCamera, () -> poseSupplier.get().getRotation(), layout);
     this.poseSupplier = poseSupplier;
 
     // Initialize vision sim

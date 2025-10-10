@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
@@ -23,6 +25,7 @@ public class VisionIOPhotonVision implements VisionIO {
   protected final Transform3d robotToCamera;
   protected final AprilTagFieldLayout aprilTagLayout;
   private final PhotonPoseEstimator poseEstimator;
+  private final Supplier<Rotation2d> rotationSupplier;
 
   /**
    * Creates a new VisionIOPhotonVision.
@@ -30,13 +33,18 @@ public class VisionIOPhotonVision implements VisionIO {
    * @param name The configured name of the camera.
    * @param rotationSupplier The 3D position of the camera relative to the robot.
    */
-  public VisionIOPhotonVision(String name, Transform3d robotToCamera, AprilTagFieldLayout layout) {
+  public VisionIOPhotonVision(
+      String name,
+      Transform3d robotToCamera,
+      Supplier<Rotation2d> rotationSupplier,
+      AprilTagFieldLayout layout) {
     camera = new PhotonCamera(name);
     this.robotToCamera = robotToCamera;
     this.aprilTagLayout = layout;
+    this.rotationSupplier = rotationSupplier;
     this.poseEstimator =
-        new PhotonPoseEstimator(layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera);
-    poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
+        new PhotonPoseEstimator(layout, PoseStrategy.LOWEST_AMBIGUITY, robotToCamera);
+    poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
   }
 
   @Override
@@ -47,6 +55,7 @@ public class VisionIOPhotonVision implements VisionIO {
     Set<Short> tagIds = new HashSet<>();
     List<PoseObservation> poseObservations = new LinkedList<>();
     for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
+      poseEstimator.addHeadingData(result.getTimestampSeconds(), rotationSupplier.get());
       // Update latest target observation
       if (result.hasTargets()) {
         inputs.latestTargetObservation =
@@ -62,6 +71,7 @@ public class VisionIOPhotonVision implements VisionIO {
             .update(result)
             .ifPresent(
                 (robotposeEstiamted) -> {
+                  Logger.recordOutput("DEBUG/Vision/UpdatingPoses", true);
                   boolean isMultiTag =
                       robotposeEstiamted.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
                   if (isMultiTag) {

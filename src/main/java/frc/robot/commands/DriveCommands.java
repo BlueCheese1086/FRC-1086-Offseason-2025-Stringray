@@ -14,6 +14,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -44,14 +45,18 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.4;
   public static final double ANGLE_MAX_VELOCITY = 8.0;
   public static final double ANGLE_MAX_ACCELERATION = 20.0;
-  private static final double TRANSLATE_KP = 5.0;
-  private static final double TRANSLATE_KD = 0.4;
-  public static final double TRANSLATE_MAX_VELOCITY = 8.0;
+  private static final double TRANSLATE_KP = 3.0;
+  private static final double TRANSLATE_KD = 0.0;
+  public static final double TRANSLATE_MAX_VELOCITY = 3.0;
   public static final double TRANSLATE_MAX_ACCELERATION = 20.0;
   private static final double FF_START_DELAY = 2.0; // Secs
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+
+  private static PIDController xController = new PIDController(TRANSLATE_KP, 0.0, TRANSLATE_KD);
+
+  private static PIDController yController = new PIDController(3.9, 0.0, 0.1);
 
   private DriveCommands() {}
 
@@ -177,20 +182,6 @@ public class DriveCommands {
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
 
-    ProfiledPIDController xController =
-        new ProfiledPIDController(
-            TRANSLATE_KP,
-            0.0,
-            TRANSLATE_KD,
-            new TrapezoidProfile.Constraints(TRANSLATE_MAX_VELOCITY, TRANSLATE_MAX_ACCELERATION));
-
-    ProfiledPIDController yController =
-        new ProfiledPIDController(
-            TRANSLATE_KP,
-            0.0,
-            TRANSLATE_KD,
-            new TrapezoidProfile.Constraints(TRANSLATE_MAX_VELOCITY, TRANSLATE_MAX_ACCELERATION));
-
     // Construct command
     return Commands.run(
             () -> {
@@ -220,8 +211,8 @@ public class DriveCommands {
         .beforeStarting(
             () -> {
               angleController.reset(drive.getRotation().getRadians());
-              xController.reset(drive.getPose().getX());
-              yController.reset(drive.getPose().getY());
+              xController.reset();
+              yController.reset();
             })
         .until(() -> DriveCommands.isNear(pose.get(), drive.getPose()))
         .finallyDo(() -> drive.stopWithX());
@@ -230,7 +221,7 @@ public class DriveCommands {
   public static boolean isNear(Pose2d target, Pose2d actual) {
     return MathUtil.isNear(0, actual.relativeTo(target).getTranslation().getNorm(), 0.025)
         && MathUtil.isNear(
-            target.getRotation().getRadians(), actual.getRotation().getRadians(), 0.025);
+            target.getRotation().getRadians(), actual.getRotation().getRadians(), 0.005);
   }
 
   /**

@@ -39,7 +39,7 @@ public class FieldConstants {
   public static final double widthBetweenPegs =
       0.328619; // Width Between Peg in meters ALWAYS go and check the field
   // BEFORE COMPETITION
-  public static final double safeDistance = 0.48;
+  public static final double safeDistance = 0.15;
 
   public static class ReefConstants {
     public enum CoralTarget {
@@ -126,6 +126,10 @@ public class FieldConstants {
 
     public static Pose2d getBestBranch(Supplier<Pose2d> poseSupplier, boolean left, boolean L4) {
       Pose2d pose = getNearestFlipped(poseSupplier, left ? leftBranchList : rightBranchList);
+      Logger.recordOutput(
+          "AutoAlign/L4TargetPose",
+          pose.transformBy(new Transform2d(-L4Offset, 0.0, Rotation2d.kZero)));
+      Logger.recordOutput("AutoAlign/Target", pose);
       return L4 ? pose.transformBy(new Transform2d(-L4Offset, 0.0, Rotation2d.kZero)) : pose;
     }
 

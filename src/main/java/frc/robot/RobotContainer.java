@@ -118,9 +118,15 @@ public class RobotContainer {
                 FieldConstants.fieldLayout,
                 drive::getRotation,
                 new VisionIOPhotonVision(
-                    "CamLeft", cameraTransforms[1], FieldConstants.fieldLayout),
+                    "CamLeft",
+                    VisionConstants.robotToLeftCam,
+                    drive::getRotation,
+                    FieldConstants.fieldLayout),
                 new VisionIOPhotonVision(
-                    "CamRight", cameraTransforms[0], FieldConstants.fieldLayout));
+                    "CamRight",
+                    VisionConstants.robotToRightCam,
+                    drive::getRotation,
+                    FieldConstants.fieldLayout));
         break;
 
       case SIM:
@@ -143,9 +149,15 @@ public class RobotContainer {
                 FieldConstants.fieldLayout,
                 drive::getRotation,
                 new VisionIOPhotonVisionSim(
-                    "Left Cam", cameraTransforms[1], drive::getPose, VisionConstants.fieldLayout),
+                    "Left Cam",
+                    VisionConstants.robotToLeftCam,
+                    drive::getPose,
+                    VisionConstants.fieldLayout),
                 new VisionIOPhotonVisionSim(
-                    "Right Cam", cameraTransforms[0], drive::getPose, VisionConstants.fieldLayout));
+                    "Right Cam",
+                    VisionConstants.robotToRightCam,
+                    drive::getPose,
+                    VisionConstants.fieldLayout));
         break;
 
       default:
