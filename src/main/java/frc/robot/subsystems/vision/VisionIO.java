@@ -54,9 +54,7 @@ public interface VisionIO {
   }
 
   // add more later
-  public static record  AlgaePoses(
-    Pose2d algaePose
-  ) {}
+  public static record AlgaePoses(Pose2d algaePose) {}
 
   public default void updateInputs(VisionIOInputs inputs) {}
 }
