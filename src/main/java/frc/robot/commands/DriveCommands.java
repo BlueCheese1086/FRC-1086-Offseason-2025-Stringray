@@ -214,7 +214,6 @@ public class DriveCommands {
               xController.reset();
               yController.reset();
             })
-        .until(() -> DriveCommands.isNear(pose.get(), drive.getPose()))
         .finallyDo(() -> drive.stopWithX());
   }
 

@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
@@ -71,7 +70,6 @@ public class VisionIOPhotonVision implements VisionIO {
             .update(result)
             .ifPresent(
                 (robotposeEstiamted) -> {
-                  Logger.recordOutput("DEBUG/Vision/UpdatingPoses", true);
                   boolean isMultiTag =
                       robotposeEstiamted.strategy == PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR;
                   if (isMultiTag) {

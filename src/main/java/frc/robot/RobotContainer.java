@@ -129,7 +129,7 @@ public class RobotContainer {
                     drive::getRotation,
                     FieldConstants.fieldLayout),
                 // I have no clue how logging is going to be rn
-                new VisionIOSouthStar(drive::getPose, "AlgaePose/X"));
+                new VisionIOSouthStar(drive::getPose));
         break;
 
       case SIM:
@@ -151,17 +151,17 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 FieldConstants.fieldLayout,
                 drive::getRotation,
-                new VisionIOPhotonVisionSim(
-                    "Left Cam",
+                new VisionIOPhotonVision(
+                    "CamLeft",
                     VisionConstants.robotToLeftCam,
-                    drive::getPose,
+                    drive::getRotation,
                     VisionConstants.fieldLayout),
                 new VisionIOPhotonVisionSim(
                     "Right Cam",
                     VisionConstants.robotToRightCam,
                     drive::getPose,
                     VisionConstants.fieldLayout),
-                new VisionIOSouthStar(drive::getPose, "SIM"));
+                new VisionIOSouthStar(drive::getPose));
         break;
 
       default:

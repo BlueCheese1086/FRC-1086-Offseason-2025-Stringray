@@ -15,30 +15,31 @@ import java.util.function.Supplier;
 
 public class VisionIOSouthStar implements VisionIO {
 
-  private NetworkTable table;
-  private String pathToData;
+  private final NetworkTable table;
   private List<AlgaePoses> algaePoses = new LinkedList<>();
-  private Supplier<Pose2d> drive;
+  private Supplier<Pose2d> driveSupplier;
 
-  public VisionIOSouthStar(Supplier<Pose2d> drivePose, String directory) {
-    this.table = NetworkTableInstance.getDefault().getTable("Algae Detection");
-    this.pathToData = directory;
-    this.drive = drivePose;
+  public VisionIOSouthStar(Supplier<Pose2d> drivePose) {
+    this.table =
+        NetworkTableInstance.getDefault()
+            .getTable("Vision")
+            .getSubTable("detections")
+            .getSubTable("algae");
+    this.driveSupplier = drivePose;
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    if (table.getEntry(pathToData).isValid()) {
-      Pose2d targetAlgae =
-          drive
-              .get()
-              .plus(
-                  new Transform2d(
-                      table.getEntry(pathToData).getDouble(0),
-                      table.getEntry(pathToData).getDouble(0),
-                      Rotation2d.kZero));
+    for (String key : table.getSubTables()) {
+      NetworkTable algaeEntry = table.getSubTable(key);
 
-      algaePoses.add(new AlgaePoses(targetAlgae));
+      double[] poseArray = algaeEntry.getEntry("pose").getDoubleArray(new double[3]);
+
+      if (poseArray != null && poseArray.length == 3) {
+        Transform2d offset = new Transform2d(poseArray[0], poseArray[1], new Rotation2d());
+
+        algaePoses.add(new AlgaePoses(driveSupplier.get().transformBy(offset)));
+      }
     }
   }
 }
