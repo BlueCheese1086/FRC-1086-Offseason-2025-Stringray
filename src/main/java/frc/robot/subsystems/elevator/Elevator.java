@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
+import frc.robot.subsystems.elevator.ElevatorConstants.ElevatorSetpoint;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -92,7 +93,9 @@ public class Elevator extends SubsystemBase {
     nextSetpoint = setpoint.height;
   }
 
-  /* Set the Elevator Target enum, for set extension method to move the elevator */
+  /*
+   * Set the Elevator Target enum, for set extension method to move the elevator
+   */
   public Command setTarget(Supplier<ElevatorSetpoint> height) {
     return Commands.runOnce(() -> this.selectFutureTarget(height.get()));
   }

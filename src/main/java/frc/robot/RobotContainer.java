@@ -128,7 +128,6 @@ public class RobotContainer {
                     VisionConstants.robotToRightCam,
                     drive::getRotation,
                     FieldConstants.fieldLayout),
-                // I have no clue how logging is going to be rn
                 new VisionIOSouthStar(drive::getPose));
         break;
 
@@ -160,8 +159,7 @@ public class RobotContainer {
                     "Right Cam",
                     VisionConstants.robotToRightCam,
                     drive::getPose,
-                    VisionConstants.fieldLayout),
-                new VisionIOSouthStar(drive::getPose));
+                    VisionConstants.fieldLayout));
         break;
 
       default:

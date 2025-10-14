@@ -9,27 +9,30 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
-
+import org.littletonrobotics.junction.Logger;
+/*
+ * This class handles object detection by logging detected algae and transforming them by the drive to provide 
+ * robot relavtive poses for nearby algae
+ */
 public class VisionIOSouthStar implements VisionIO {
 
   private final NetworkTable table;
-  private List<AlgaePoses> algaePoses = new LinkedList<>();
   private Supplier<Pose2d> driveSupplier;
+  private List<Pose2d> detectedAlgae = new ArrayList<>();
 
   public VisionIOSouthStar(Supplier<Pose2d> drivePose) {
-    this.table =
-        NetworkTableInstance.getDefault()
-            .getTable("Vision")
-            .getSubTable("detections")
-            .getSubTable("algae");
+    this.table = NetworkTableInstance.getDefault().getTable("JetsonAI");
     this.driveSupplier = drivePose;
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
+    detectedAlgae.clear();
     for (String key : table.getSubTables()) {
       NetworkTable algaeEntry = table.getSubTable(key);
 
@@ -38,7 +41,11 @@ public class VisionIOSouthStar implements VisionIO {
       if (poseArray != null && poseArray.length == 3) {
         Transform2d offset = new Transform2d(poseArray[0], poseArray[1], new Rotation2d());
 
-        algaePoses.add(new AlgaePoses(driveSupplier.get().transformBy(offset)));
+        Logger.recordOutput("Vision/OJ/Offsets", offset);
+
+        Logger.recordOutput("Vision/OJ/Algae", driveSupplier.get().transformBy(offset));
+        detectedAlgae.add(driveSupplier.get().transformBy(offset));
+        Logger.recordOutput("Vision/OJ/DetectedAlgae", detectedAlgae.toArray(new Pose2d[0]));
       }
     }
   }

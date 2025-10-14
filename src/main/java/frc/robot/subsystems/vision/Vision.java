@@ -108,11 +108,6 @@ public class Vision extends SubsystemBase {
         }
       }
 
-      for (var loggedAlgae : inputs[cameraIndex].algaePose) {
-        Logger.recordOutput("Object Detection" + index, loggedAlgae);
-        index++;
-      }
-
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
 
