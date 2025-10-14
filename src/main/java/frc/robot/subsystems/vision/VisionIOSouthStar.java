@@ -9,14 +9,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+
 /*
- * This class handles object detection by logging detected algae and transforming them by the drive to provide 
+ * This class handles object detection by logging detected algae and transforming them by the drive to provide
  * robot relavtive poses for nearby algae
  */
 public class VisionIOSouthStar implements VisionIO {
