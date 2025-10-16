@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -39,6 +40,10 @@ public class VisionIOSouthStar implements VisionIO {
 
       if (poseArray != null && poseArray.length == 3) {
         Transform2d offset = new Transform2d(poseArray[0], poseArray[1], new Rotation2d());
+
+        if (MathUtil.isNear(offset.getX(), driveSupplier.get().getX(), 0.1) && MathUtil.isNear(offset.getY(), driveSupplier.get().getY(), 0.1)) {
+          detectedAlgae.clear();
+        }
 
         Logger.recordOutput("Vision/OJ/Offsets", offset);
 
