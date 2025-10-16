@@ -315,6 +315,12 @@ public class RobotContainer {
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
 
+    operator
+        .povDown()
+        .whileTrue(
+            DriveCommands.autoAlign(
+                drive, () -> FieldConstants.ReefConstants.getBestAlgaeAlign(drive::getPose)));
+
     simLayout.operatorOuttakeBackwards.whileTrue(
         outtake.setVoltage(() -> -(OuttakeConstants.intake)));
 

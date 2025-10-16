@@ -37,9 +37,11 @@ public class FieldConstants {
   public static final double fieldLength = fieldLayout.getFieldLength();
   public static final double fieldWidth = fieldLayout.getFieldWidth();
   public static final double widthBetweenPegs =
-      0.328619; // Width Between Peg in meters ALWAYS go and check the field
+      Units.inchesToMeters(13.5); // Width Between Peg in meters ALWAYS go and
+  // check the field
   // BEFORE COMPETITION
   public static final double safeDistance = 0.15;
+  public static final double algaeOffset = Units.inchesToMeters(24);
 
   public static class ReefConstants {
     public enum CoralTarget {
@@ -56,8 +58,8 @@ public class FieldConstants {
     }
 
     public enum AlgaeTarget {
-      L2(0.42),
-      L3(0.81);
+      L2(0.38),
+      L3(0.78);
 
       public double height;
 
@@ -131,6 +133,11 @@ public class FieldConstants {
           pose.transformBy(new Transform2d(-L4Offset, 0.0, Rotation2d.kZero)));
       Logger.recordOutput("AutoAlign/Target", pose);
       return L4 ? pose.transformBy(new Transform2d(-L4Offset, 0.0, Rotation2d.kZero)) : pose;
+    }
+
+    public static Pose2d getBestAlgaeAlign(Supplier<Pose2d> posesSupplier) {
+      Logger.recordOutput("AUTOALIGN/TESTING", AllianceFlipUtil.apply(aprilTags[4].transformBy(new Transform2d(algaeOffset, 0.0, Rotation2d.k180deg))));
+      return AllianceFlipUtil.apply(aprilTags[4].transformBy(new Transform2d(algaeOffset, 0.0, Rotation2d.k180deg)));
     }
 
     public static Pose2d[] algaeLocations =
