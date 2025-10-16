@@ -14,6 +14,9 @@ public interface ProximityIO {
 
     public double distance; // Distance in MM actually idk what it is in
     public boolean detected;
+    public double red = 0.0;
+    public double blue = 0.0;
+    public double green = 0.0;
 
     public double temperature;
   }
