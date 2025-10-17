@@ -315,8 +315,8 @@ public class RobotContainer {
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
 
-    operator
-        .povDown()
+    driver
+        .leftBumper()
         .whileTrue(
             DriveCommands.autoAlign(
                 drive, () -> FieldConstants.ReefConstants.getBestAlgaeAlign(drive::getPose)));

@@ -41,7 +41,8 @@ public class FieldConstants {
   // check the field
   // BEFORE COMPETITION
   public static final double safeDistance = 0.15;
-  public static final double algaeOffset = Units.inchesToMeters(24);
+  public static final double algaeOffset = Units.inchesToMeters(26);
+  public static final double algaeYOffset = -Units.inchesToMeters(15);
 
   public static class ReefConstants {
     public enum CoralTarget {
@@ -136,8 +137,14 @@ public class FieldConstants {
     }
 
     public static Pose2d getBestAlgaeAlign(Supplier<Pose2d> posesSupplier) {
-      Logger.recordOutput("AUTOALIGN/TESTING", AllianceFlipUtil.apply(aprilTags[4].transformBy(new Transform2d(algaeOffset, 0.0, Rotation2d.k180deg))));
-      return AllianceFlipUtil.apply(aprilTags[4].transformBy(new Transform2d(algaeOffset, 0.0, Rotation2d.k180deg)));
+      Logger.recordOutput(
+          "AUTOALIGN/TESTING",
+          AllianceFlipUtil.apply(
+              aprilTags[4].transformBy(
+                  new Transform2d(algaeOffset, algaeYOffset, Rotation2d.kCW_90deg))));
+      return AllianceFlipUtil.apply(
+          aprilTags[4].transformBy(
+              new Transform2d(algaeOffset, algaeYOffset, Rotation2d.kCW_90deg)));
     }
 
     public static Pose2d[] algaeLocations =
