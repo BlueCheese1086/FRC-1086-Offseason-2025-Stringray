@@ -43,7 +43,7 @@ public class VisionIOPhotonVision implements VisionIO {
     this.rotationSupplier = rotationSupplier;
     this.poseEstimator =
         new PhotonPoseEstimator(layout, PoseStrategy.LOWEST_AMBIGUITY, robotToCamera);
-    poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+    poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
   }
 
   @Override

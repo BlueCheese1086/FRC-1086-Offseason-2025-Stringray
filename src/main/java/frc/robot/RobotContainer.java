@@ -65,6 +65,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOSouthStar;
+import frc.robot.subsystems.vision.VisionIOSouthStarSim;
 import frc.robot.util.FieldConstants;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -128,7 +129,7 @@ public class RobotContainer {
                     VisionConstants.robotToRightCam,
                     drive::getRotation,
                     FieldConstants.fieldLayout),
-                new VisionIOSouthStar(drive::getPose));
+                new VisionIOSouthStar(drive::getPose, VisionConstants.camProps));
         break;
 
       case SIM:
@@ -150,16 +151,17 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 FieldConstants.fieldLayout,
                 drive::getRotation,
-                new VisionIOPhotonVision(
-                    "CamLeft",
+                new VisionIOPhotonVisionSim(
+                    "Left Cam",
                     VisionConstants.robotToLeftCam,
-                    drive::getRotation,
+                    drive::getPose,
                     VisionConstants.fieldLayout),
                 new VisionIOPhotonVisionSim(
                     "Right Cam",
                     VisionConstants.robotToRightCam,
                     drive::getPose,
-                    VisionConstants.fieldLayout));
+                    VisionConstants.fieldLayout),
+                new VisionIOSouthStarSim(drive::getPose, VisionConstants.camProps));
         break;
 
       default:
@@ -315,6 +317,7 @@ public class RobotContainer {
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
 
+    // Testing arm bot auto align for drive train! not part of comp
     driver
         .leftBumper()
         .whileTrue(

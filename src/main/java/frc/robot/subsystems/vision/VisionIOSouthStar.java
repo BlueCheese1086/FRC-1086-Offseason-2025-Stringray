@@ -1,17 +1,14 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems.vision;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import java.util.ArrayList;
-import java.util.List;
+import frc.robot.util.Camera;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -23,35 +20,37 @@ public class VisionIOSouthStar implements VisionIO {
 
   private final NetworkTable table;
   private Supplier<Pose2d> driveSupplier;
-  private List<Pose2d> detectedAlgae = new ArrayList<>();
+  private Camera cam;
 
-  public VisionIOSouthStar(Supplier<Pose2d> drivePose) {
+  public VisionIOSouthStar(Supplier<Pose2d> drivePose, Camera camera) {
     this.table = NetworkTableInstance.getDefault().getTable("JetsonAI");
     this.driveSupplier = drivePose;
+    this.cam = camera;
+    this.cam.clear();
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    detectedAlgae.clear();
+    int index = 0;
+    cam.setPose(new Pose3d(driveSupplier.get()));
+    cam.log();
     for (String key : table.getSubTables()) {
       NetworkTable algaeEntry = table.getSubTable(key);
 
       double[] poseArray = algaeEntry.getEntry("pose").getDoubleArray(new double[3]);
+      Transform2d offset = new Transform2d(poseArray[0], poseArray[1], new Rotation2d());
 
       if (poseArray != null && poseArray.length == 3) {
-        Transform2d offset = new Transform2d(poseArray[0], poseArray[1], new Rotation2d());
-
-        if (MathUtil.isNear(offset.getX(), driveSupplier.get().getX(), 0.1)
-            && MathUtil.isNear(offset.getY(), driveSupplier.get().getY(), 0.1)) {
-          detectedAlgae.clear();
-        }
 
         Logger.recordOutput("Vision/OJ/Offsets", offset);
-
         Logger.recordOutput("Vision/OJ/Algae", driveSupplier.get().transformBy(offset));
-        detectedAlgae.add(driveSupplier.get().transformBy(offset));
-        Logger.recordOutput("Vision/OJ/DetectedAlgae", detectedAlgae.toArray(new Pose2d[0]));
+        Translation3d translation =
+            new Translation3d(driveSupplier.get().transformBy(offset).getTranslation());
+        cam.addAlgae(
+            index,
+            new Pose3d(translation.getX(), translation.getY(), poseArray[2], new Rotation3d()));
       }
+      index++;
     }
   }
 }

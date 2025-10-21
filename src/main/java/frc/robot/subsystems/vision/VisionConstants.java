@@ -15,9 +15,14 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.util.Algae;
+import frc.robot.util.AllianceFlipUtil;
+import frc.robot.util.Camera;
+import java.util.List;
 
 /** Add your docs here. */
 public class VisionConstants {
@@ -66,4 +71,13 @@ public class VisionConstants {
 
   public static double multitagLinearStdDevBaseline = 0.35; // Meters
   public static double multitagAngularStdDevBaseline = 0.14; // Radians
+
+  /* Starting algae Poses */
+  public static List<Algae> algae =
+      List.of(
+          new Algae("Algae1", AllianceFlipUtil.apply(new Pose3d(1.26, 2.31, 0, new Rotation3d()))),
+          new Algae("Algae2", AllianceFlipUtil.apply(new Pose3d(1.26, 4.07, 0, new Rotation3d()))),
+          new Algae("Alage3", AllianceFlipUtil.apply(new Pose3d(1.26, 5.90, 0, new Rotation3d()))));
+
+  public static Camera camProps = new Camera("AlgaeCam", 83, 55, 5.0, VisionConstants.algae);
 }

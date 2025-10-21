@@ -44,8 +44,6 @@ public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private RobotContainer robotContainer;
 
-  private boolean connected = DriverStation.getAlliance().isPresent();
-
   public Robot() {
     // Record metadata
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -74,12 +72,9 @@ public class Robot extends LoggedRobot {
         break;
 
       case SIM:
-        // Running a physics simulator, log to NT
+        // Running a physics simulator, log to NT & CREATE A LOG
         Logger.addDataReceiver(new NT4Publisher());
-        // model =
-        // new AscopeModel(
-        // new Pose3d[] {new Pose3d(), new Pose3d(), new Pose3d(), new Pose3d()},
-        // "Stringray");
+        Logger.addDataReceiver(new WPILOGWriter());
         break;
 
       case REPLAY:
@@ -87,7 +82,7 @@ public class Robot extends LoggedRobot {
         setUseTiming(false); // Run as fast as possible
         String logPath = LogFileUtil.findReplayLog();
         Logger.setReplaySource(new WPILOGReader(logPath));
-        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_replay")));
         break;
     }
 
@@ -139,8 +134,8 @@ public class Robot extends LoggedRobot {
     Logger.recordOutput("MacthInfo/Alliance", DriverStation.getAlliance().orElse(Alliance.Red));
     Logger.recordOutput("MatchInfo/FMS Connected", DriverStation.isFMSAttached());
     Logger.recordOutput("MatchInfo/MatchNumber", DriverStation.getMatchNumber());
-    Logger.recordOutput("MathInfo/Time", DriverStation.getMatchTime());
-    Logger.recordOutput("MathInfo/Event", DriverStation.getEventName());
+    Logger.recordOutput("MatchInfo/Time", DriverStation.getMatchTime());
+    Logger.recordOutput("MatchInfo/Event", DriverStation.getEventName());
     DriverStation.refreshData();
     // Optionally switch the thread to high priority to improve loop
     // timing (see the template project documentation for details)
