@@ -26,7 +26,6 @@ public class VisionIOSouthStar implements VisionIO {
     this.table = NetworkTableInstance.getDefault().getTable("JetsonAI");
     this.driveSupplier = drivePose;
     this.cam = camera;
-    this.cam.clear();
   }
 
   @Override
