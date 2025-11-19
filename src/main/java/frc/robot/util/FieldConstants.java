@@ -40,7 +40,7 @@ public class FieldConstants {
       Units.inchesToMeters(13.5); // Width Between Peg in meters ALWAYS go and
   // check the field
   // BEFORE COMPETITION
-  public static final double safeDistance = 0.15;
+  public static final double safeDistance = Units.inchesToMeters(26);
   public static final double algaeOffset = Units.inchesToMeters(26);
   public static final double algaeYOffset = -Units.inchesToMeters(15);
 

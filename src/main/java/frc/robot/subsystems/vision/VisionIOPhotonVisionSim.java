@@ -41,7 +41,6 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
       AprilTagFieldLayout layout) {
     super(name, robotToCamera, () -> poseSupplier.get().getRotation(), layout);
     this.poseSupplier = poseSupplier;
-
     // Initialize vision sim
     if (visionSim == null) {
       visionSim = new VisionSystemSim("main");

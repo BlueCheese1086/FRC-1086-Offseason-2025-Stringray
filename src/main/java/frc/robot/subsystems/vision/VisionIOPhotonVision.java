@@ -42,20 +42,20 @@ public class VisionIOPhotonVision implements VisionIO {
     this.aprilTagLayout = layout;
     this.rotationSupplier = rotationSupplier;
     this.poseEstimator =
-        new PhotonPoseEstimator(layout, PoseStrategy.LOWEST_AMBIGUITY, robotToCamera);
+        new PhotonPoseEstimator(layout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera);
     poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
+    camera.setDriverMode(false);
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
     inputs.connected = camera.isConnected();
-
     // Read new camera observations
     Set<Short> tagIds = new HashSet<>();
     List<PoseObservation> poseObservations = new LinkedList<>();
     for (PhotonPipelineResult result : camera.getAllUnreadResults()) {
-      poseEstimator.addHeadingData(result.getTimestampSeconds(), rotationSupplier.get());
       // Update latest target observation
+      poseEstimator.addHeadingData(result.getTimestampSeconds(), rotationSupplier.get());
       if (result.hasTargets()) {
         inputs.latestTargetObservation =
             new TargetObservation(

@@ -26,6 +26,7 @@ public class VisionIOSouthStar implements VisionIO {
     this.table = NetworkTableInstance.getDefault().getTable("JetsonAI");
     this.driveSupplier = drivePose;
     this.cam = camera;
+    // this.cam.clear();
   }
 
   @Override
@@ -33,6 +34,9 @@ public class VisionIOSouthStar implements VisionIO {
     int index = 0;
     cam.setPose(new Pose3d(driveSupplier.get()));
     cam.log();
+    // cam.addAlgae(
+    //     index,
+    //     new Pose3d(driveSupplier.get().transformBy(new Transform2d(1, 0, new Rotation2d()))));
     for (String key : table.getSubTables()) {
       NetworkTable algaeEntry = table.getSubTable(key);
 

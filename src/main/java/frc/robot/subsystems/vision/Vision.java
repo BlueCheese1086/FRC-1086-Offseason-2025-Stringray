@@ -29,28 +29,19 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
-  private final Supplier<Rotation2d> rotationSupplier;
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
   private final AprilTagFieldLayout aprilTagLayout;
-  private final LinkedList<Double> recentYaw = new LinkedList<>();
-  private int index = 0;
 
-  public Vision(
-      VisionConsumer consumer,
-      AprilTagFieldLayout layout,
-      Supplier<Rotation2d> supplier,
-      VisionIO... io) {
+  public Vision(VisionConsumer consumer, AprilTagFieldLayout layout, VisionIO... io) {
     this.consumer = consumer;
     this.io = io;
     this.aprilTagLayout = layout;
-    rotationSupplier = supplier;
 
     // Initialize inputs
     this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -115,7 +106,8 @@ public class Vision extends SubsystemBase {
         boolean rejectPose =
             observation.tagCount() == 0 // Must have at least one tag
                 || (observation.tagCount() == 1
-                    && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
+                    && (observation.ambiguity() > maxAmbiguity // Cannot be high ambiguity
+                        || observation.averageTagDistance() > averageTagDistance))
                 || Math.abs(observation.pose().getZ())
                     > maxZError // Must have realistic Z coordinate
                 // Must be within the field boundaries
@@ -139,7 +131,7 @@ public class Vision extends SubsystemBase {
         }
         // Calculate standard deviations
         double stdDevFactor =
-            Math.max(Math.pow(observation.averageTagDistance(), 1.0) / observation.tagCount(), 1.0);
+            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
 
         double linearStdDev =
             (observation.type() == PoseObservationType.PHOTONVISION
@@ -153,14 +145,14 @@ public class Vision extends SubsystemBase {
                     : multitagAngularStdDevBaseline)
                 * stdDevFactor;
 
-        if (observation.type() == PoseObservationType.MULTITAG) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
-        }
         if (cameraIndex < cameraStdDevFactors.length) {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
+
+        Logger.recordOutput(
+            "Vision/Camera" + Integer.toString(cameraIndex) + "/xythetaStdDevs",
+            new double[] {linearStdDev, linearStdDev, angularStdDev});
 
         // Send vision observation
         consumer.accept(

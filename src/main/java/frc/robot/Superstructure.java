@@ -157,8 +157,6 @@ public class Superstructure {
     // Climb
     setClimbBindings();
 
-    // Why can I control the entire robot using on a single controller and sensor
-    // readings?
     // Manual Elevator Stuff
     // Setting the bindings
     setManualBindings();
