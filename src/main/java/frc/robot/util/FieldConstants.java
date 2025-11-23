@@ -136,6 +136,10 @@ public class FieldConstants {
       return L4 ? pose.transformBy(new Transform2d(-L4Offset, 0.0, Rotation2d.kZero)) : pose;
     }
 
+    public static Pose2d getNearestFlipped(Supplier<Pose2d> poseSupplier, List<Pose2d> poses) {
+      return AllianceFlipUtil.apply(AllianceFlipUtil.apply(poseSupplier.get()).nearest(poses));
+    }
+
     public static Pose2d getBestAlgaeAlign(Supplier<Pose2d> posesSupplier) {
       Logger.recordOutput(
           "AUTOALIGN/TESTING",
@@ -181,14 +185,16 @@ public class FieldConstants {
         };
     public static Pose2d[] sourcePoses =
         new Pose2d[] {
-          sourceTags[0].transformBy(new Transform2d(safeDistance, 0.0, Rotation2d.kZero)),
-          sourceTags[1].transformBy(new Transform2d(safeDistance, 0.0, Rotation2d.kZero))
+          AllianceFlipUtil.apply(
+              sourceTags[0].transformBy(new Transform2d(safeDistance, 0.0, Rotation2d.kZero))),
+          AllianceFlipUtil.apply(
+              sourceTags[1].transformBy(new Transform2d(safeDistance, 0.0, Rotation2d.kZero)))
         };
 
     private static List<Pose2d> sourceList = List.of(sourcePoses);
 
     public static Pose2d getNearestSource(Supplier<Pose2d> poseSupplier) {
-      return getNearestFlipped(poseSupplier, sourceList);
+      return poseSupplier.get().nearest(sourceList);
     }
   }
 
@@ -232,7 +238,7 @@ public class FieldConstants {
     private static List<Pose2d> bargePoseList = List.of(bargePoses);
 
     public static Pose2d getNearestNet(Supplier<Pose2d> poseSupplier) {
-      return getNearestFlipped(poseSupplier, bargePoseList);
+      return ReefConstants.getNearestFlipped(poseSupplier, bargePoseList);
     }
   }
 
@@ -253,10 +259,6 @@ public class FieldConstants {
             pose1.get().getRotation().getRadians(),
             pose2.get().getRotation().getRadians(),
             orientationTolerance);
-  }
-
-  public static Pose2d getNearestFlipped(Supplier<Pose2d> poseSupplier, List<Pose2d> poses) {
-    return AllianceFlipUtil.apply(AllianceFlipUtil.apply(poseSupplier.get()).nearest(poses));
   }
 
   public static void Log() {

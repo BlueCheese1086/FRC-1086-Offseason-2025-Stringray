@@ -14,6 +14,7 @@
 package frc.robot;
 
 import choreo.auto.AutoFactory;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -22,8 +23,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Superstructure.ControllerLayout;
 import frc.robot.commands.AutoRoutines;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
@@ -43,7 +42,6 @@ import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.gripper.Gripper;
-import frc.robot.subsystems.gripper.GripperConstants;
 import frc.robot.subsystems.gripper.GripperIO;
 import frc.robot.subsystems.gripper.GripperIOSim;
 import frc.robot.subsystems.gripper.GripperIOTalonFX;
@@ -52,7 +50,6 @@ import frc.robot.subsystems.hopper.HopperIO;
 import frc.robot.subsystems.hopper.HopperIOSim;
 import frc.robot.subsystems.hopper.HopperIOTalonFX;
 import frc.robot.subsystems.outtake.Outtake;
-import frc.robot.subsystems.outtake.OuttakeConstants;
 import frc.robot.subsystems.outtake.OuttakeIO;
 import frc.robot.subsystems.outtake.OuttakeIOSim;
 import frc.robot.subsystems.outtake.OuttakeIOTalonFX;
@@ -63,315 +60,234 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOSouthStar;
-import frc.robot.subsystems.vision.VisionIOSouthStarSim;
 import frc.robot.util.FieldConstants;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.pathfinding.Pathfinding;
-
 /**
- * This class is where the bulk of the robot should be declared. Since
- * Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of
- * the robot (including
+ * This class is where the bulk of the robot should be declared. Since Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-    // Subsystems
-    private final Drive drive;
-    private final Elevator elevator;
-    private final Outtake outtake;
-    private final Hopper hopper;
-    private final Gripper gripper;
-    private final Climb climb;
-    private final Vision vision;
-    public final Superstructure superstructure;
-    private final AutoRoutines routine;
-    // Controller
-    private final CommandXboxController driver = new CommandXboxController(0);
-    private final CommandXboxController operator = new CommandXboxController(1);
+  // Subsystems
+  private final Drive drive;
+  private final Elevator elevator;
+  private final Outtake outtake;
+  private final Hopper hopper;
+  private final Gripper gripper;
+  private final Climb climb;
+  private final Vision vision;
+  public final Superstructure superstructure;
+  private final AutoRoutines routine;
+  // Controller
+  private final CommandXboxController driver = new CommandXboxController(0);
+  private final CommandXboxController operator = new CommandXboxController(1);
 
-    // private final ControllerLayout compLayout = new ControllerLayout();
-    private final ControllerLayout simLayout = new ControllerLayout();
+  // Dashboard inputs
+  private final LoggedDashboardChooser<Command> autoChooser;
 
-    // Dashboard inputs
-    private final LoggedDashboardChooser<Command> autoChooser;
+  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  public RobotContainer() {
+    switch (Constants.currentMode) {
+      case REAL:
+        // Real robot, instantiate hardware IO implementations
+        drive =
+            new Drive(
+                new GyroIOPigeon2(),
+                new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                new ModuleIOTalonFX(TunerConstants.FrontRight),
+                new ModuleIOTalonFX(TunerConstants.BackLeft),
+                new ModuleIOTalonFX(TunerConstants.BackRight));
+        elevator = new Elevator(new ElevatorIOTalonFX());
+        outtake = new Outtake(new OuttakeIOTalonFX(), new ProximityIOCanAndColor(21, 0.2));
+        hopper = new Hopper(new HopperIOTalonFX());
+        gripper = new Gripper(new GripperIOTalonFX(), new ProximityIOCanAndColor(41, 0.15));
+        climb = new Climb(new ClimbIOTalonFX());
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                FieldConstants.fieldLayout,
+                new VisionIOPhotonVision(
+                    "CamLeft",
+                    VisionConstants.robotToLeftCam,
+                    drive::getRotation,
+                    FieldConstants.fieldLayout),
+                new VisionIOPhotonVision(
+                    "CamRight",
+                    VisionConstants.robotToRightCam,
+                    drive::getRotation,
+                    FieldConstants.fieldLayout),
+                new VisionIOSouthStar(drive::getPose, VisionConstants.camProps));
+        break;
 
-    /**
-     * The container for the robot. Contains subsystems, OI devices, and commands.
-     */
-    public RobotContainer() {
-        switch (Constants.currentMode) {
-            case REAL:
-                // Real robot, instantiate hardware IO implementations
-                drive = new Drive(
-                        new GyroIOPigeon2(),
-                        new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                        new ModuleIOTalonFX(TunerConstants.FrontRight),
-                        new ModuleIOTalonFX(TunerConstants.BackLeft),
-                        new ModuleIOTalonFX(TunerConstants.BackRight));
-                elevator = new Elevator(new ElevatorIOTalonFX());
-                outtake = new Outtake(new OuttakeIOTalonFX(), new ProximityIOCanAndColor(21, 0.2));
-                hopper = new Hopper(new HopperIOTalonFX());
-                gripper = new Gripper(new GripperIOTalonFX(), new ProximityIOCanAndColor(41, 0.15));
-                climb = new Climb(new ClimbIOTalonFX());
-                vision = new Vision(
-                        drive::addVisionMeasurement,
-                        FieldConstants.fieldLayout,
-                        new VisionIOPhotonVision(
-                                "CamLeft",
-                                VisionConstants.robotToLeftCam,
-                                drive::getRotation,
-                                FieldConstants.fieldLayout),
-                        new VisionIOPhotonVision(
-                                "CamRight",
-                                VisionConstants.robotToRightCam,
-                                drive::getRotation,
-                                FieldConstants.fieldLayout),
-                        new VisionIOSouthStar(drive::getPose, VisionConstants.camProps));
-                break;
+      case SIM:
+        // Sim robot, instantiate physics sim IO implementations
+        drive =
+            new Drive(
+                new GyroIO() {},
+                new ModuleIOSim(TunerConstants.FrontLeft),
+                new ModuleIOSim(TunerConstants.FrontRight),
+                new ModuleIOSim(TunerConstants.BackLeft),
+                new ModuleIOSim(TunerConstants.BackRight));
+        elevator = new Elevator(new ElevatorIOSim());
+        outtake = new Outtake(new OuttakeIOSim(), new ProximityIOSim("Outtake"));
+        hopper = new Hopper(new HopperIOSim());
+        gripper = new Gripper(new GripperIOSim(), new ProximityIOSim("Gripper"));
+        climb = new Climb(new ClimbIOSim());
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                FieldConstants.fieldLayout,
+                new VisionIOPhotonVision(
+                    "CamLeft",
+                    VisionConstants.robotToLeftCam,
+                    drive::getRotation,
+                    FieldConstants.fieldLayout),
+                new VisionIOPhotonVision(
+                    "CamRight",
+                    VisionConstants.robotToRightCam,
+                    drive::getRotation,
+                    FieldConstants.fieldLayout));
+        break;
 
-            case SIM:
-                // Sim robot, instantiate physics sim IO implementations
-                drive = new Drive(
-                        new GyroIO() {
-                        },
-                        new ModuleIOSim(TunerConstants.FrontLeft),
-                        new ModuleIOSim(TunerConstants.FrontRight),
-                        new ModuleIOSim(TunerConstants.BackLeft),
-                        new ModuleIOSim(TunerConstants.BackRight));
-                elevator = new Elevator(new ElevatorIOSim());
-                outtake = new Outtake(new OuttakeIOSim(), new ProximityIOSim("Outtake"));
-                hopper = new Hopper(new HopperIOSim());
-                gripper = new Gripper(new GripperIOSim(), new ProximityIOSim("Gripper"));
-                climb = new Climb(new ClimbIOSim());
-                vision = new Vision(
-                        drive::addVisionMeasurement,
-                        FieldConstants.fieldLayout,
-                        new VisionIOPhotonVision(
-                                "CamLeft",
-                                VisionConstants.robotToLeftCam,
-                                drive::getRotation,
-                                FieldConstants.fieldLayout),
-                        new VisionIOPhotonVision(
-                                "CamRight",
-                                VisionConstants.robotToRightCam,
-                                drive::getRotation,
-                                FieldConstants.fieldLayout));
-                break;
-
-            default:
-                // Replayed robot, disable IO implementations
-                drive = new Drive(
-                        new GyroIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        });
-                elevator = new Elevator(new ElevatorIO() {
-                });
-                outtake = new Outtake(new OuttakeIO() {
-                }, new ProximityIO() {
-                });
-                hopper = new Hopper(new HopperIO() {
-                });
-                gripper = new Gripper(new GripperIO() {
-                }, new ProximityIO() {
-                });
-                climb = new Climb(new ClimbIO() {
-                });
-                vision = new Vision(
-                        drive::addVisionMeasurement,
-                        FieldConstants.fieldLayout,
-                        new VisionIO() {
-                        },
-                        new VisionIO() {
-                        },
-                        new VisionIO() {
-                        });
-                break;
-        }
-
-        // Setting Trajectory Following
-        AutoRoutines.poseGetter = drive::getPose;
-        AutoRoutines.driveFunction = drive::runVelocity;
-        AutoRoutines.driveSubsystem = drive;
-        AutoRoutines.autoFactory = new AutoFactory(
-                drive::getPose,
-                drive::setPose,
-                AutoRoutines.driveController(drive),
-                true,
-                drive,
-                (traj, edge) -> {
-                    Logger.recordOutput(
-                            "Autos/Active Trajectory",
-                            DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)
-                                    ? traj.flipped().getPoses()
-                                    : traj.getPoses());
-                });
-        routine = new AutoRoutines();
-        PathfindingCommand.warmupCommand();
-        // Setting Up Superstructure
-        // Defining Axises
-        simLayout.driveX = () -> driver.getLeftY();
-        simLayout.driveY = () -> driver.getLeftX();
-
-        // Requests
-        simLayout.intakeRequest = driver.leftTrigger();
-        simLayout.scoreRequest = driver.rightTrigger();
-        simLayout.manualElevator = driver.back().or(operator.back());
-
-        // Coral Presets
-        simLayout.L1 = driver.a();
-        simLayout.L2 = driver.b();
-        simLayout.L3 = driver.x();
-        simLayout.L4 = driver.y();
-
-        // Climb Setup
-        simLayout.climbRequest = driver.povDown();
-        simLayout.autoAlignCage = new Trigger(() -> false);
-
-        // Auto Align
-        simLayout.autoAlignLeft = driver.leftBumper();
-        simLayout.autoAlignRight = driver.rightBumper();
-
-        // Basic Functions
-        simLayout.cancelRequest = driver.povLeft();
-        simLayout.resetGyro = driver.povRight();
-        simLayout.revFunnel = driver.povUp();
-        simLayout.dejamCoral = driver.start();
-
-        // Operator Stuff
-        simLayout.operatorY = () -> -operator.getLeftY();
-        simLayout.operatorFunnelForwards = operator.povUp();
-        simLayout.operatorFunnelBackwards = operator.povDown();
-        simLayout.operatorGripperIntake = operator.leftBumper();
-        simLayout.operatorGripperRun = operator.rightBumper();
-        simLayout.operatorOuttakeForwards = operator.rightTrigger();
-        simLayout.operatorOuttakeBackwards = operator.leftTrigger();
-        simLayout.operatorConfirmManual = operator.a();
-
-        // Maybe Useless Stuff?
-        simLayout.setPrescoreCoral = driver.leftStick();
-        simLayout.setPrescoreAlgae = driver.rightStick();
-        simLayout.driveController = driver;
-        simLayout.operatorController = operator;
-
-        superstructure = new Superstructure(drive, elevator, outtake, hopper, gripper, climb, simLayout);
-
-        // Set up auto routines
-        autoChooser = new LoggedDashboardChooser<>("Auto Choices");
-
-        // Set up SysId routines
-        // autoChooser.addOption(
-        // "Drive Wheel Radius Characterization",
-        // DriveCommands.wheelRadiusCharacterization(drive));
-        // autoChooser.addOption(
-        // "Drive Simple FF Characterization",
-        // DriveCommands.feedforwardCharacterization(drive));
-        // autoChooser.addOption(
-        // "Drive SysId (Quasistatic Forward)",
-        // drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-        // autoChooser.addOption(
-        // "Drive SysId (Quasistatic Reverse)",
-        // drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-        // autoChooser.addOption(
-        // "Drive SysId (Dynamic Forward)",
-        // drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-        // autoChooser.addOption(
-        // "Drive SysId (Dynamic Reverse)",
-        // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-        autoChooser.addOption("Homing Sequence", elevator.homeElevator());
-        autoChooser.addOption(
-                "aCtoG",
-                AutoRoutines.followTrajectory(
-                        AutoRoutines.loadTrajectory("aCtoG").get(), drive::getPose, drive::runVelocity, drive));
-
-        autoChooser.addOption("One L4 Coral", routine.oneL4Coral(drive, outtake, hopper, elevator));
-
-        autoChooser.addOption("SysId Elevator", elevator.sysId());
-
-        autoChooser.addDefaultOption(
-                "Single L4 Coral Top",
-                Autos.AutoAlignL4Center(drive, elevator, outtake, hopper, superstructure));
-
-        autoChooser.addOption(
-                "Single L4 Coral Center",
-                Autos.SingleL4Center(drive, elevator, outtake, hopper, superstructure));
-
-        autoChooser.addOption(
-                "Double Auto", Autos.k4L4(drive, elevator, outtake, hopper, superstructure));
-
-        // Configure the button bindings
-        configureButtonBindings();
+      default:
+        // Replayed robot, disable IO implementations
+        drive =
+            new Drive(
+                new GyroIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {});
+        elevator = new Elevator(new ElevatorIO() {});
+        outtake = new Outtake(new OuttakeIO() {}, new ProximityIO() {});
+        hopper = new Hopper(new HopperIO() {});
+        gripper = new Gripper(new GripperIO() {}, new ProximityIO() {});
+        climb = new Climb(new ClimbIO() {});
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                FieldConstants.fieldLayout,
+                new VisionIO() {},
+                new VisionIO() {},
+                new VisionIO() {});
+        break;
     }
 
-    /**
-     * Use this method to define your button->command mappings. Buttons can be
-     * created by
-     * instantiating a {@link GenericHID} or one of its subclasses ({@link
-     * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing
-     * it to a {@link
-     * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-     */
-    private void configureButtonBindings() {
-        // Default command, normal field-relative drive
-        drive.setDefaultCommand(
-                DriveCommands.joystickDrive(
-                        drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
+    // Setting Trajectory Following
+    AutoRoutines.poseGetter = drive::getPose;
+    AutoRoutines.driveFunction = drive::runVelocity;
+    AutoRoutines.driveSubsystem = drive;
+    AutoRoutines.autoFactory =
+        new AutoFactory(
+            drive::getPose,
+            drive::setPose,
+            AutoRoutines.driveController(drive),
+            true,
+            drive,
+            (traj, edge) -> {
+              Logger.recordOutput(
+                  "Autos/Active Trajectory",
+                  DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red)
+                      ? traj.flipped().getPoses()
+                      : traj.getPoses());
+            });
+    routine = new AutoRoutines();
+    PathfindingCommand.warmupCommand();
 
-        // Testing arm bot auto align for drive train! not part of comp
-        driver
-                .leftBumper()
-                .whileTrue(
-                        DriveCommands.autoAlign(
-                                drive, () -> FieldConstants.ReefConstants.getBestAlgaeAlign(drive::getPose)));
+    superstructure =
+        new Superstructure(
+            drive, elevator, outtake, hopper, gripper, climb, driver, driver.a(), driver.povLeft());
 
-        simLayout.operatorOuttakeBackwards.whileTrue(
-                outtake.setVoltage(() -> -(OuttakeConstants.intake)));
+    // Set up auto routines
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices");
 
-        simLayout.operatorOuttakeForwards.whileTrue(
-                outtake.setVoltage(() -> (OuttakeConstants.intake)));
+    // Set up SysId routines
+    // autoChooser.addOption(
+    // "Drive Wheel Radius Characterization",
+    // DriveCommands.wheelRadiusCharacterization(drive));
+    // autoChooser.addOption(
+    // "Drive Simple FF Characterization",
+    // DriveCommands.feedforwardCharacterization(drive));
+    // autoChooser.addOption(
+    // "Drive SysId (Quasistatic Forward)",
+    // drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    // "Drive SysId (Quasistatic Reverse)",
+    // drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    // "Drive SysId (Dynamic Forward)",
+    // drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    // "Drive SysId (Dynamic Reverse)",
+    // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-        simLayout.operatorGripperIntake.whileTrue(gripper.setVoltage(() -> (GripperConstants.intake)));
+    autoChooser.addOption("Homing Sequence", elevator.homeElevator());
+    autoChooser.addOption(
+        "aCtoG",
+        AutoRoutines.followTrajectory(
+            AutoRoutines.loadTrajectory("aCtoG").get(), drive::getPose, drive::runVelocity, drive));
 
-        simLayout.operatorGripperRun.whileTrue(gripper.setVoltage(() -> (GripperConstants.net)));
+    autoChooser.addOption("One L4 Coral", routine.oneL4Coral(drive, outtake, hopper, elevator));
 
-        simLayout.operatorFunnelForwards.whileTrue(hopper.setVoltage(OuttakeConstants.intake));
+    autoChooser.addOption("SysId Elevator", elevator.sysId());
 
-        simLayout.operatorFunnelBackwards.whileTrue(hopper.setVoltage(-OuttakeConstants.intake));
-    }
+    autoChooser.addDefaultOption(
+        "Single L4 Coral Top",
+        Autos.AutoAlignL4Center(drive, elevator, outtake, hopper, superstructure));
 
-    public Command controllerRumble(double time, double strength) {
-        return Commands.run(
-                () -> {
-                    driver.setRumble(RumbleType.kBothRumble, strength);
-                })
-                .withTimeout(time)
-                .finallyDo(
-                        () -> {
-                            driver.setRumble(RumbleType.kBothRumble, 0.0);
-                        });
-    }
+    autoChooser.addOption(
+        "Single L4 Coral Center",
+        Autos.SingleL4Center(drive, elevator, outtake, hopper, superstructure));
 
-    /**
-     * Use this to pass the autonomous command to the main {@link Robot} class.
-     *
-     * @return the command to run in autonomous
-     */
-    public Command getAutonomousCommand() {
-        return autoChooser.get();
-    }
+    autoChooser.addOption(
+        "Double Auto", Autos.k4L4(drive, elevator, outtake, hopper, superstructure));
+
+    // Configure the button bindings
+    configureButtonBindings();
+  }
+
+  /**
+   * Use this method to define your button->command mappings. Buttons can be created by
+   * instantiating a {@link GenericHID} or one of its subclasses ({@link
+   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
+   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
+   */
+  private void configureButtonBindings() {
+    // Default command, normal field-relative drive
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
+
+    // Testing arm bot auto align for drive train! not part of comp
+    driver
+        .leftBumper()
+        .whileTrue(
+            DriveCommands.autoAlign(
+                drive, () -> FieldConstants.ReefConstants.getBestAlgaeAlign(drive::getPose)));
+  }
+
+  public Command controllerRumble(double time, double strength) {
+    return Commands.run(
+            () -> {
+              driver.setRumble(RumbleType.kBothRumble, strength);
+            })
+        .withTimeout(time)
+        .finallyDo(
+            () -> {
+              driver.setRumble(RumbleType.kBothRumble, 0.0);
+            });
+  }
+
+  /**
+   * Use this to pass the autonomous command to the main {@link Robot} class.
+   *
+   * @return the command to run in autonomous
+   */
+  public Command getAutonomousCommand() {
+    return autoChooser.get();
+  }
 }

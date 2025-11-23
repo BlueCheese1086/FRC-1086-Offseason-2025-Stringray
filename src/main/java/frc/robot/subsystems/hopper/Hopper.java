@@ -6,6 +6,7 @@ package frc.robot.subsystems.hopper;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Hopper extends SubsystemBase {
@@ -23,10 +24,10 @@ public class Hopper extends SubsystemBase {
     Logger.processInputs("Hopper", data);
   }
 
-  public Command setVoltage(double volts) {
+  public Command setVoltage(DoubleSupplier volts) {
     return this.run(
             () -> {
-              io.setVoltage(volts);
+              io.setVoltage(volts.getAsDouble());
             })
         .finallyDo(
             () -> {

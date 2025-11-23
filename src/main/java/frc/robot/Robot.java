@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.FieldConstants;
+import frc.robot.util.WebServer;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -43,6 +44,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private RobotContainer robotContainer;
+  private WebServer server;
 
   public Robot() {
     // Record metadata
@@ -111,22 +113,18 @@ public class Robot extends LoggedRobot {
   }
 
   /* Setting NT as a server in sim for vision testing */
-  // @Override
-  // public void robotInit() {
-  //   if (Robot.isSimulation()) {
-  //     NetworkTableInstance inst = NetworkTableInstance.getDefault();
-
-  //     System.out.println("Server at " + inst.getNetworkMode());
-  //     inst.startServer();
-  //   }
-
-  //   try {
-  //     String hostIP = InetAddress.getLocalHost().getHostAddress();
-  //     System.out.println("Simulation NT server running on IP: " + hostIP);
-  //   } catch (UnknownHostException e) {
-  //     System.out.println("Could not determine local IP address.");
-  //   }
-  // }
+  @Override
+  public void robotInit() {
+    new Thread(
+            () -> {
+              try {
+                server = new WebServer(1086);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            })
+        .start();
+  }
 
   /** This function is called periodically during all modes. */
   @Override

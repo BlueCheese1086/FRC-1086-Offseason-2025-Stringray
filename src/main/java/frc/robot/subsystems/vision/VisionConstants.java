@@ -94,6 +94,5 @@ public class VisionConstants {
           new Algae("Alage3", AllianceFlipUtil.apply(new Pose3d(1.26, 5.90, 0, new Rotation3d()))));
   ;
 
-  public static Camera camProps =
-      new Camera("AlgaeCam", 83, 55, 5.0, VisionConstants.getAlgaeListBasedOnMode());
+  public static Camera camProps = new Camera("AlgaeCam", 83, 55, 5.0, simAlgae);
 }

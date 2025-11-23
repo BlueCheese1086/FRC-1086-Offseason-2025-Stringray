@@ -20,7 +20,7 @@ public class LED extends SubsystemBase {
   @Override
   public void periodic() {
     if (DriverStation.isEnabled()) {
-      io.setAnimation(LEDConstants.animMap.get(currentState));
+      // io.setAnimation(LEDConstants.animMap.get(currentState));
     } else {
       io.setAnimation(LEDConstants.disabledAnim);
     }

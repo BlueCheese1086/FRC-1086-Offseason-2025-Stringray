@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
 import frc.robot.Superstructure;
-import frc.robot.Superstructure.State;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.hopper.Hopper;
@@ -21,7 +20,6 @@ import frc.robot.util.FieldConstants;
 import frc.robot.util.FieldConstants.ReefConstants;
 import frc.robot.util.FieldConstants.ReefConstants.CoralTarget;
 import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
 
 /** Some Preset Autos */
 public class Autos {
@@ -90,16 +88,6 @@ public class Autos {
         AutoRoutines.runTrajectory("DtoS"));
   }
 
-  public static Command logCommand(Superstructure superstructure) {
-    return Commands.run(
-        () -> {
-          Logger.recordOutput(
-              "Autos/Coral Ready", superstructure.kCurrentState == State.CORAL_READY);
-          Logger.recordOutput(
-              "Autos/Coral Intake", superstructure.kCurrentState == State.CORAL_INTAKE);
-        });
-  }
-
   public static Command runTestAuto() {
     return Commands.sequence(
         AutoRoutines.runTrajectory("aCtoG"),
@@ -151,7 +139,7 @@ public class Autos {
     //             }));
     // return logCommand(superstructure);
     return Commands.parallel(
-            hopper.setVoltage(OuttakeConstants.intake),
+            hopper.setVoltage(() -> OuttakeConstants.intake),
             outtake.setVoltage(() -> 8.0),
             Commands.waitSeconds(0.5)
                 .andThen(() -> outtake.setDetected(true))
