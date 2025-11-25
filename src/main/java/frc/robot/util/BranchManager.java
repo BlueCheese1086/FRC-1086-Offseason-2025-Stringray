@@ -86,40 +86,6 @@ public class BranchManager {
     }
   }
 
-  public void updateLeftBranchSetpoint(int branchId, ElevatorSetpoint setpoint) {
-    Branch old = leftBranches.get(branchId);
-    if (old != null) {
-      List<ElevatorSetpoint> newList = new ArrayList<>(old.setpoint());
-      newList.add(setpoint);
-      leftBranches.put(branchId, new Branch(old.pose(), newList));
-    }
-  }
-
-  public void updateRightBranchSetpoint(int branchId, ElevatorSetpoint setpoint) {
-    Branch old = rightBranches.get(branchId);
-    if (old != null) {
-      List<ElevatorSetpoint> newList = new ArrayList<>(old.setpoint());
-      newList.add(setpoint);
-      rightBranches.put(branchId, new Branch(old.pose(), newList));
-    }
-  }
-
-  public Branch getLeftBranch(int id) {
-    return leftBranches.get(id);
-  }
-
-  public Branch getRightBranch(int id) {
-    return rightBranches.get(id);
-  }
-
-  public Pose2d getLeftPose(int id) {
-    return leftBranches.get(id).pose();
-  }
-
-  public Pose2d getRightPose(int id) {
-    return rightBranches.get(id).pose();
-  }
-
   public void removeLeftBranchSetpoint(int id, ElevatorSetpoint setpoint) {
     Branch branch = leftBranches.get(id);
     if (branch == null) return;
