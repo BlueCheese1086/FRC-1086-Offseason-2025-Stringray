@@ -61,7 +61,9 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOSouthStar;
+import frc.robot.util.BranchManager;
 import frc.robot.util.FieldConstants;
+import frc.robot.util.FieldConstants.ReefConstants;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -82,6 +84,7 @@ public class RobotContainer {
   private final Vision vision;
   public final Superstructure superstructure;
   private final AutoRoutines routine;
+  private final BranchManager manager;
   // Controller
   private final CommandXboxController driver = new CommandXboxController(0);
   private final CommandXboxController operator = new CommandXboxController(1);
@@ -196,11 +199,21 @@ public class RobotContainer {
                       : traj.getPoses());
             });
     routine = new AutoRoutines();
+    manager = new BranchManager();
     PathfindingCommand.warmupCommand();
 
     superstructure =
         new Superstructure(
-            drive, elevator, outtake, hopper, gripper, climb, driver, driver.a(), driver.povLeft());
+            drive,
+            elevator,
+            outtake,
+            hopper,
+            gripper,
+            climb,
+            manager,
+            driver,
+            driver.a(),
+            driver.povLeft());
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices");
@@ -246,6 +259,8 @@ public class RobotContainer {
     autoChooser.addOption(
         "Double Auto", Autos.k4L4(drive, elevator, outtake, hopper, superstructure));
 
+    manager.loadBranches(ReefConstants.leftBranchList, ReefConstants.rightBranchList);
+
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -261,13 +276,6 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
-
-    // Testing arm bot auto align for drive train! not part of comp
-    driver
-        .leftBumper()
-        .whileTrue(
-            DriveCommands.autoAlign(
-                drive, () -> FieldConstants.ReefConstants.getBestAlgaeAlign(drive::getPose)));
   }
 
   public Command controllerRumble(double time, double strength) {

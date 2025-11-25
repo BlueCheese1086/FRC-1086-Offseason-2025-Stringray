@@ -16,13 +16,9 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Threads;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
@@ -114,17 +110,7 @@ public class Robot extends LoggedRobot {
 
   /* Setting NT as a server in sim for vision testing */
   @Override
-  public void robotInit() {
-    new Thread(
-            () -> {
-              try {
-                server = new WebServer(1086);
-              } catch (Exception e) {
-                e.printStackTrace();
-              }
-            })
-        .start();
-  }
+  public void robotInit() {}
 
   /** This function is called periodically during all modes. */
   @Override
@@ -149,14 +135,6 @@ public class Robot extends LoggedRobot {
     Threads.setCurrentThreadPriority(false, 10);
     robotContainer.superstructure.periodic();
     FieldConstants.Log();
-    Logger.recordOutput("RobotPose", new Pose2d());
-    Logger.recordOutput("ZeroredComponet", new Pose3d[] {new Pose3d()});
-    Logger.recordOutput(
-        "FinalComponentPose",
-        new Pose3d[] {
-          new Pose3d(
-              -0.238, 0.0, 0.298, new Rotation3d(0.0, Math.sin(Timer.getTimestamp()) - 1.0, 0.0))
-        });
   }
 
   /** This function is called once when the robot is disabled. */

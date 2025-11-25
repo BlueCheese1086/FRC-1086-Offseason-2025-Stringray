@@ -122,8 +122,8 @@ public class FieldConstants {
         };
 
     private static List<Pose2d> tagList = List.of(aprilTags);
-    private static List<Pose2d> leftBranchList = List.of(leftBranches);
-    private static List<Pose2d> rightBranchList = List.of(rightBranches);
+    public static List<Pose2d> leftBranchList = List.of(leftBranches);
+    public static List<Pose2d> rightBranchList = List.of(rightBranches);
 
     private static double L4Offset = 0.25;
 

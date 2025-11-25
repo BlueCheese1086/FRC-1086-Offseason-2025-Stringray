@@ -27,7 +27,6 @@ public class ElevatorConstants {
   public enum ElevatorSetpoint {
     INTAKE(0.0), // 0.006 if its not at the right height
     L1(0.42),
-    L1Flick(0.52),
     L2(0.79),
     L3(1.18),
     L4(1.77),

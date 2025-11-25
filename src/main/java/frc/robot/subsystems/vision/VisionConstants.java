@@ -57,16 +57,16 @@ public class VisionConstants {
 
   public static Transform3d robotToLeftCam =
       new Transform3d(
-          0.2941,
-          0.2106,
-          0.2313,
-          new Rotation3d(0.0, -Units.degreesToRadians(25.0), Units.degreesToRadians(-20)));
+          Units.inchesToMeters(12.066),
+          Units.inchesToMeters(11.906),
+          Units.inchesToMeters(8.355),
+          new Rotation3d(0.0, -Units.degreesToRadians(13.125000), Units.degreesToRadians(-35)));
   public static Transform3d robotToRightCam =
       new Transform3d(
-          0.2941,
-          -0.2106,
-          0.2313,
-          new Rotation3d(0.0, -Units.degreesToRadians(25.0), Units.degreesToRadians(20)));
+          Units.inchesToMeters(12.066),
+          Units.inchesToMeters(-11.906),
+          Units.inchesToMeters(8.355),
+          new Rotation3d(0.0, -Units.degreesToRadians(13.125000), Units.degreesToRadians(35)));
 
   public static double trigLinearStdDevBaseline = 0.35; // Meters
   public static double trigAngularStdDevBaseline = Double.POSITIVE_INFINITY; // Radians

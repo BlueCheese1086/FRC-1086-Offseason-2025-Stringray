@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,9 +21,13 @@ import frc.robot.subsystems.gripper.Gripper;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.outtake.Outtake;
 import frc.robot.subsystems.outtake.OuttakeConstants;
+import frc.robot.util.BranchManager;
+import frc.robot.util.BranchManager.Branch;
 import frc.robot.util.FieldConstants.ReefConstants;
 import frc.robot.util.FieldConstants.SourceConstants;
+import frc.robot.util.WebServer;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -47,6 +52,9 @@ public class Superstructure extends SubsystemBase {
   private Map<State, Trigger> stateRequests = new EnumMap<>(State.class);
   private Map<State, Trigger> stateTriggers = new EnumMap<>(State.class);
 
+  private List<Pose2d> leftPoses;
+  private List<Pose2d> rightPoses;
+
   // Logging the current and previous robot state
   @AutoLogOutput(key = "RobotState/CurrentState")
   private State currentState = State.IDLE;
@@ -69,6 +77,8 @@ public class Superstructure extends SubsystemBase {
   private final Hopper hopper;
   private final Outtake outtake;
   private final Climb climb;
+  private WebServer server;
+  private BranchManager manager;
 
   private final CommandXboxController driver;
   private final LoggedMechanism2d body = new LoggedMechanism2d(1.0, 1.0);
@@ -83,6 +93,7 @@ public class Superstructure extends SubsystemBase {
       Hopper hopper,
       Gripper gripper,
       Climb climb,
+      BranchManager manager,
       CommandXboxController driver,
       Trigger autoIntakeRequest,
       Trigger exitRequest) {
@@ -95,8 +106,19 @@ public class Superstructure extends SubsystemBase {
     this.climb = climb;
     this.hopper = hopper;
     this.outtake = outtake;
+    this.manager = manager;
     this.autoIntakeRequest = autoIntakeRequest;
     this.cancelRequest = exitRequest;
+
+    new Thread(
+            () -> {
+              try {
+                server = new WebServer(1086);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            })
+        .start();
 
     var root = body.getRoot("Mech", 0.8, 0.0125);
     root.append(elevatorLigament);
@@ -110,10 +132,34 @@ public class Superstructure extends SubsystemBase {
       stateTriggers.put(
           state, new Trigger(() -> this.currentState == state && DriverStation.isEnabled()));
     }
+
+    this.setupIdle();
   }
 
   public void setupIdle() {
     stateTriggers.get(State.IDLE).and(autoIntakeRequest).onTrue(this.forceState(State.AUTO_INTAKE));
+    ;
+
+    stateTriggers
+        .get(State.IDLE)
+        .and(driver.leftBumper())
+        .and(() -> !leftPoses.isEmpty())
+        .onTrue(
+            DriveCommands.autoAlign(drive, () -> drive.getPose().nearest(leftPoses))
+                .until(
+                    () ->
+                        DriveCommands.isNear(drive.getPose().nearest(leftPoses), drive.getPose())));
+
+    stateTriggers
+        .get(State.IDLE)
+        .and(driver.rightBumper())
+        .and(() -> !rightPoses.isEmpty())
+        .onTrue(
+            DriveCommands.autoAlign(drive, () -> drive.getPose().nearest(rightPoses))
+                .until(
+                    () ->
+                        DriveCommands.isNear(
+                            drive.getPose().nearest(rightPoses), drive.getPose())));
 
     stateTriggers
         .get(State.IDLE)
@@ -189,6 +235,42 @@ public class Superstructure extends SubsystemBase {
     if (Robot.isSimulation() || !DriverStation.isFMSAttached()) {
       // Log All Necessary Superstructure Data
       Logger.recordOutput("Superstructure/Mechanism", body);
+    }
+
+    if (server.getLastLevelSelected() != null) {
+      this.mapWebServerToId(
+          server.getLastCircleClicked(), ElevatorSetpoint.valueOf(server.getLastLevelSelected()));
+    }
+
+    this.logBranchPoses();
+  }
+
+  private void logBranchPoses() {
+    leftPoses = manager.leftBranches.values().stream().map(Branch::pose).toList();
+
+    rightPoses = manager.rightBranches.values().stream().map(Branch::pose).toList();
+
+    Logger.recordOutput("Branches/Left/Poses", leftPoses.toArray(new Pose2d[0]));
+    Logger.recordOutput("Branches/Right/Poses", rightPoses.toArray(new Pose2d[0]));
+  }
+
+  public void mapWebServerToId(int id, ElevatorSetpoint setpoint) {
+    switch (id) {
+      case 0 -> manager.removeRightBranchSetpoint(0, setpoint);
+      case 1 -> manager.removeLeftBranchSetpoint(0, setpoint);
+      case 2 -> manager.removeRightBranchSetpoint(1, setpoint);
+      case 3 -> manager.removeLeftBranchSetpoint(1, setpoint);
+      case 4 -> manager.removeRightBranchSetpoint(2, setpoint);
+      case 5 -> manager.removeLeftBranchSetpoint(2, setpoint);
+      case 6 -> manager.removeLeftBranchSetpoint(3, setpoint);
+      case 7 -> manager.removeRightBranchSetpoint(3, setpoint);
+      case 8 -> manager.removeLeftBranchSetpoint(4, setpoint);
+      case 9 -> manager.removeRightBranchSetpoint(4, setpoint);
+      case 10 -> manager.removeLeftBranchSetpoint(5, setpoint);
+      case 11 -> manager.removeRightBranchSetpoint(5, setpoint);
+      default -> {
+        DriverStation.reportWarning("Id is Null", true);
+      }
     }
   }
 
